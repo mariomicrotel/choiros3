@@ -5,12 +5,65 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import Calendar from "./pages/Calendar";
+import AdminMembers from "./pages/admin/AdminMembers";
+import AdminEvents from "./pages/admin/AdminEvents";
+import AdminPayments from "./pages/admin/AdminPayments";
+import CheckIn from "./pages/CheckIn";
+import EventQRCode from "./pages/EventQRCode";
+import DashboardLayout from "./components/DashboardLayout";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      
+      {/* Dashboard Routes */}
+      <Route path={"/dashboard"}>
+        <DashboardLayout>
+          <Dashboard />
+        </DashboardLayout>
+      </Route>
+      
+      <Route path={"/calendar"}>
+        <DashboardLayout>
+          <Calendar />
+        </DashboardLayout>
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path={"/admin/members"}>
+        <DashboardLayout>
+          <AdminMembers />
+        </DashboardLayout>
+      </Route>
+
+      <Route path={"/admin/events"}>
+        <DashboardLayout>
+          <AdminEvents />
+        </DashboardLayout>
+      </Route>
+
+      <Route path={"/admin/payments"}>
+        <DashboardLayout>
+          <AdminPayments />
+        </DashboardLayout>
+      </Route>
+
+      {/* Check-in Routes */}
+      <Route path={"/checkin"}>
+        <DashboardLayout>
+          <CheckIn />
+        </DashboardLayout>
+      </Route>
+
+      <Route path={"/events/:id/qr"}>
+        <DashboardLayout>
+          <EventQRCode />
+        </DashboardLayout>
+      </Route>
+
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -18,18 +71,10 @@ function Router() {
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
