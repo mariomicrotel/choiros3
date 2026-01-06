@@ -230,3 +230,13 @@
 - [x] Configurare tutte le route per accettare prefisso tenant
 - [x] Aggiornate route: dashboard, calendar, profile, admin/*, checkin, events/:id/qr
 - [x] Mantenuta route legacy /dashboard per backward compatibility
+
+
+## Task: Aggiornamento Link Navigazione DashboardLayout
+
+- [x] Leggere DashboardLayout per identificare tutti i link
+- [x] Aggiornare link sidebar per usare pattern /t/:slug/
+- [x] Recuperare slug organizzazione da URL params o user context
+- [x] Generare menu items dinamicamente con tenant slug
+- [x] Aggiungere menu condizionale per admin (membri, eventi, pagamenti)
+- [x] Mostrare nome organizzazione nell'header sidebar

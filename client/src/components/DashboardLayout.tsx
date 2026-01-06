@@ -21,16 +21,13 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Calendar, UserCircle, DollarSign, Music } from "lucide-react";
+import { CSSProperties, useEffect, useRef, useState, useMemo } from "react";
+import { useLocation, useParams } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
-];
+// Menu items will be generated dynamically with tenant slug
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 280;
@@ -108,12 +105,42 @@ function DashboardLayoutContent({
 }: DashboardLayoutContentProps) {
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
+  const params = useParams() as { slug?: string };
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+
+  // Get tenant slug from URL or organization
+  const tenantSlug = useMemo(() => {
+    if (params.slug) return params.slug;
+    if (user?.organization?.slug) return user.organization.slug;
+    return 'coro-demo'; // fallback
+  }, [params.slug, user?.organization?.slug]);
+
+  // Generate menu items with tenant slug
+  const menuItems = useMemo(() => {
+    const baseItems = [
+      { icon: LayoutDashboard, label: "Dashboard", path: `/t/${tenantSlug}/dashboard` },
+      { icon: Calendar, label: "Calendario", path: `/t/${tenantSlug}/calendar` },
+      { icon: UserCircle, label: "Profilo", path: `/t/${tenantSlug}/profile` },
+    ];
+
+    // Add admin items if user is admin or higher
+    const isAdmin = user?.role && ['admin', 'director', 'secretary'].includes(user.role);
+    if (isAdmin) {
+      baseItems.push(
+        { icon: Users, label: "Membri", path: `/t/${tenantSlug}/admin/members` },
+        { icon: Calendar, label: "Eventi", path: `/t/${tenantSlug}/admin/events` },
+        { icon: DollarSign, label: "Pagamenti", path: `/t/${tenantSlug}/admin/payments` },
+      );
+    }
+
+    return baseItems;
+  }, [tenantSlug, user?.role]);
+
+  const activeMenuItem = menuItems.find(item => item.path === location);
 
   useEffect(() => {
     if (isCollapsed) {
@@ -171,7 +198,7 @@ function DashboardLayoutContent({
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-semibold tracking-tight truncate">
-                    Navigation
+                    {user?.organization?.name || "ChoirOS"}
                   </span>
                 </div>
               ) : null}
