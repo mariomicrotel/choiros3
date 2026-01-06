@@ -269,3 +269,14 @@
 - [x] Soluzione: rimossa logica redirect automatico da Home.tsx
 - [x] Aggiunto messaggio "Benvenuto in ChoirOS" con pulsante per accedere a coro demo
 - [x] TenantRoute gestisce correttamente protezione route con tenant context
+
+
+## Bug Fix: Utente Senza Membership
+
+- [x] Verificare membership per utente loggato (mariomicrotel@gmail.com) - OK
+- [x] Membership esiste già nel database
+- [x] Problema: tenant context non estratto da URL API
+- [x] Soluzione: passare tenant slug via header x-tenant-slug
+- [x] Modificato main.tsx per includere header nelle richieste tRPC
+- [x] Modificato tenantContext.ts per leggere header x-tenant-slug
+- [ ] Testare accesso a /t/coro-demo/dashboard dopo fix

@@ -21,13 +21,21 @@ export async function extractTenantContext(ctx: TrpcContext): Promise<TenantCont
   const req = ctx.req;
   let tenantSlug: string | null = null;
 
-  // Try to extract from subdomain first
-  const host = req.headers.host || "";
-  const subdomain = host.split(".")[0];
-  
-  // Check if subdomain is not the main domain
-  if (subdomain && subdomain !== "localhost" && subdomain !== "choiros" && !subdomain.includes(":")) {
-    tenantSlug = subdomain;
+  // Try to extract from x-tenant-slug header first (sent by frontend)
+  const headerSlug = req.headers["x-tenant-slug"];
+  if (headerSlug && typeof headerSlug === "string") {
+    tenantSlug = headerSlug;
+  }
+
+  // Try to extract from subdomain
+  if (!tenantSlug) {
+    const host = req.headers.host || "";
+    const subdomain = host.split(".")[0];
+    
+    // Check if subdomain is not the main domain
+    if (subdomain && subdomain !== "localhost" && subdomain !== "choiros" && !subdomain.includes(":")) {
+      tenantSlug = subdomain;
+    }
   }
 
   // If no subdomain, try to extract from path /t/{slug}/...

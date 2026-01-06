@@ -43,9 +43,17 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       fetch(input, init) {
+        // Extract tenant slug from URL path /t/{slug}/...
+        const pathMatch = window.location.pathname.match(/^\/t\/([^\/]+)/);
+        const tenantSlug = pathMatch ? pathMatch[1] : null;
+        
         return globalThis.fetch(input, {
           ...(init ?? {}),
           credentials: "include",
+          headers: {
+            ...(init?.headers || {}),
+            ...(tenantSlug ? { "x-tenant-slug": tenantSlug } : {}),
+          },
         });
       },
     }),
