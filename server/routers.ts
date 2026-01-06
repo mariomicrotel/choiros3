@@ -40,6 +40,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import {
   organizations,
+  users,
   memberships,
   userProfiles,
   events,
@@ -100,6 +101,10 @@ export const appRouter = router({
         colors: ctx.organization?.colors,
         settings: ctx.organization?.settings,
       };
+    }),
+
+    membership: tenantProcedure.query(async ({ ctx }) => {
+      return ctx.membership;
     }),
 
     update: adminProcedure
@@ -170,7 +175,23 @@ export const appRouter = router({
           conditions.push(eq(userProfiles.status, input.status as any));
         }
 
-        return db.select().from(userProfiles).where(and(...conditions)).limit(input.limit).offset(input.offset);
+        // Join with users table to get name and email
+        const { getTableColumns } = await import("drizzle-orm");
+        const profileColumns = getTableColumns(userProfiles);
+        
+        const results = await db
+          .select({
+            ...profileColumns,
+            name: users.name,
+            email: users.email,
+          })
+          .from(userProfiles)
+          .leftJoin(users, eq(userProfiles.userId, users.id))
+          .where(and(...conditions))
+          .limit(input.limit)
+          .offset(input.offset);
+
+        return results;
       }),
 
     get: tenantProcedure.input(z.object({ userId: z.number() })).query(async ({ ctx, input }) => {

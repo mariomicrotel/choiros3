@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import ProfileCapoSezione from "./ProfileCapoSezione";
+import ProfileSegretario from "./ProfileSegretario";
+import ProfileDirettore from "./ProfileDirettore";
+import ProfileAdmin from "./ProfileAdmin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +25,27 @@ import { it } from "date-fns/locale";
 
 export default function Profile() {
   const { user } = useAuth();
+
+  // Fetch membership to get role
+  const { data: membership } = trpc.tenant.membership.useQuery(
+    undefined,
+    { enabled: !!user?.user?.id }
+  );
+
+  // Route to appropriate profile based on role
+  if (membership) {
+    const role = membership.role;
+    if (role === "admin") {
+      return <ProfileAdmin />;
+    } else if (role === "director") {
+      return <ProfileDirettore />;
+    } else if (role === "secretary") {
+      return <ProfileSegretario />;
+    } else if (role === "capo_section") {
+      return <ProfileCapoSezione />;
+    }
+    // For member and guest, show default profile below
+  }
   const [isEditing, setIsEditing] = useState(false);
 
   const utils = trpc.useUtils();

@@ -151,30 +151,34 @@
 - [ ] Gestione documenti personali
 
 ### Profilo Capo Sezione
-- [ ] Vista membri della propria sezione vocale
-- [ ] Statistiche presenze per sezione
+- [x] Vista membri della propria sezione vocale con dettagli
+- [x] Statistiche membri attivi/totali per sezione
+- [x] Lista prossimi eventi
 - [ ] Report presenze sezione (export CSV)
 - [ ] Comunicazioni interne sezione
 
 ### Profilo Segretario
-- [ ] Dashboard iscrizioni pending
-- [ ] Approvazione/rifiuto iscrizioni con motivazione
-- [ ] Vista completa membri con filtri avanzati
+- [x] Dashboard iscrizioni pending con statistiche
+- [x] Approvazione/rifiuto iscrizioni con motivazione
+- [x] Vista completa membri con stato
 - [ ] Export lista membri (CSV/PDF)
 - [ ] Gestione comunicazioni massive
 
 ### Profilo Direttore
-- [ ] Dashboard statistiche coro complete
-- [ ] Vista presenze globali per evento
+- [x] Dashboard statistiche coro complete
+- [x] Vista distribuzione sezioni vocali con grafici
+- [x] Visualizzazione repertorio musicale
+- [x] Analisi eventi per tipologia
 - [ ] Report presenze per sezione vocale
-- [ ] Gestione repertorio e setlist
 - [ ] Pianificazione stagione artistica
 
 ### Profilo Admin
-- [ ] Gestione completa organizzazione
+- [x] Vista informazioni organizzazione
+- [x] Statistiche membri per stato e ruolo
+- [x] Statistiche finanziarie complete (entrate, pending, falliti)
+- [x] Dashboard sistema con metriche
 - [ ] Configurazione impostazioni coro
 - [ ] Gestione ruoli e permessi
-- [ ] Statistiche finanziarie
 - [ ] Backup e export dati
 
 
@@ -187,3 +191,15 @@
 - [x] Pagamenti demo con vari stati
 - [x] Presenze registrate per statistiche
 - [x] Iscrizioni pending per test approvazioni
+
+
+## Task Corrente: Profili Specializzati per Ruoli
+
+### Implementazione Profili
+- [ ] ProfileCapoSezione.tsx - Vista membri sezione, statistiche presenze
+- [ ] ProfileSegretario.tsx - Dashboard iscrizioni, approvazione membri
+- [ ] ProfileDirettore.tsx - Statistiche globali coro, gestione repertorio
+- [ ] ProfileAdmin.tsx - Configurazione organizzazione, gestione completa
+- [ ] Routing dinamico basato su ruolo utente
+- [ ] Endpoint backend per statistiche per sezione
+- [ ] Endpoint backend per statistiche globali coro
