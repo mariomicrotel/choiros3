@@ -240,3 +240,14 @@
 - [x] Generare menu items dinamicamente con tenant slug
 - [x] Aggiungere menu condizionale per admin (membri, eventi, pagamenti)
 - [x] Mostrare nome organizzazione nell'header sidebar
+
+
+## Bug Fix: Dashboard Non Si Carica
+
+- [x] Verificare errore caricamento infinito dashboard
+- [x] Identificato problema: endpoint myOrganizations non rigenerato nei tipi
+- [x] Soluzione: usare user.organization da context invece di query separata
+- [x] Modificato Home.tsx per redirect diretto con user.organization.slug
+- [x] Semplificato SelectOrganization.tsx per mostrare info account demo
+- [x] Rimossi errori TypeScript su myOrganizations
+- [ ] Testare login con utenti demo di vari ruoli

@@ -4,36 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getLoginUrl } from "@/const";
 import { Music, Calendar, Users, CreditCard, QrCode, Mail } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { trpc } from "@/lib/trpc";
 import { useEffect } from "react";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
-  
-  // Get user's organizations if authenticated
-  const { data: organizations, isLoading: orgsLoading } = trpc.auth.myOrganizations.useQuery(
-    undefined,
-    { enabled: isAuthenticated && !!user?.user }
-  );
 
   useEffect(() => {
     // Redirect authenticated users to their organization
-    if (isAuthenticated && user?.user && organizations) {
-      if (organizations.length === 1) {
-        // Single organization: redirect directly
-        window.location.href = `/t/${organizations[0].slug}/dashboard`;
-      } else if (organizations.length > 1) {
-        // Multiple organizations: show selection page
-        setLocation("/select-org");
-      } else {
-        // No organizations: show selection page with empty state
-        setLocation("/select-org");
-      }
+    if (isAuthenticated && user?.user && user?.organization) {
+      // User has an organization: redirect directly
+      window.location.href = `/t/${user.organization.slug}/dashboard`;
+    } else if (isAuthenticated && user?.user && !user?.organization) {
+      // User authenticated but no organization: show selection/onboarding
+      setLocation("/select-org");
     }
-  }, [isAuthenticated, user, organizations, setLocation]);
+  }, [isAuthenticated, user, setLocation]);
 
-  if (loading || orgsLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
