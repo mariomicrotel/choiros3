@@ -251,3 +251,13 @@
 - [x] Semplificato SelectOrganization.tsx per mostrare info account demo
 - [x] Rimossi errori TypeScript su myOrganizations
 - [ ] Testare login con utenti demo di vari ruoli
+
+
+## Bug Fix: Redirect OAuth Non Mantiene Tenant Context
+
+- [x] Verificare callback OAuth e dove reindirizza dopo login
+- [x] Modificato getLoginUrl per accettare parametro returnTo
+- [x] Aggiunto returnTo come query param nella callback URL
+- [x] Modificato oauth.ts per leggere returnTo e reindirizzare correttamente
+- [x] Aggiornato DashboardLayout per passare window.location.pathname come returnTo
+- [ ] Testare flusso completo: /t/coro-demo/dashboard → login → callback → /t/coro-demo/dashboard
