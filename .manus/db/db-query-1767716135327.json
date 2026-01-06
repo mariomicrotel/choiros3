@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO memberships (user_id, organization_id, role, status)\nSELECT u.id, o.id, 'admin', 'active'\nFROM users u, organizations o\nWHERE u.email = 'mariomicrotel@gmail.com' AND o.slug = 'coro-demo'\nON DUPLICATE KEY UPDATE status = 'active';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user wjjXWQDGjB7WrTn.ac8865d956e8 --database 3e8SkZx3sJxzLsSkfWugGu --execute INSERT INTO memberships (user_id, organization_id, role, status)\nSELECT u.id, o.id, 'admin', 'active'\nFROM users u, organizations o\nWHERE u.email = 'mariomicrotel@gmail.com' AND o.slug = 'coro-demo'\nON DUPLICATE KEY UPDATE status = 'active';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 65
+}

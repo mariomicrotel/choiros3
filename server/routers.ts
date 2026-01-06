@@ -86,6 +86,27 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+
+    // Get user's organizations
+    myOrganizations: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      const { getTableColumns } = await import("drizzle-orm");
+      const orgColumns = getTableColumns(organizations);
+
+      const results = await db
+        .select({
+          ...orgColumns,
+          role: memberships.role,
+          status: memberships.status,
+        })
+        .from(memberships)
+        .innerJoin(organizations, eq(memberships.organizationId, organizations.id))
+        .where(eq(memberships.userId, ctx.user!.id));
+
+      return results;
+    }),
   }),
 
   // ============================================================================

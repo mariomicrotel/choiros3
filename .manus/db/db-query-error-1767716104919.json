@@ -1,0 +1,8 @@
+{
+  "query": "SELECT u.id, u.email, u.name, m.organizationId, m.role, o.name as org_name\nFROM users u\nLEFT JOIN memberships m ON u.id = m.userId\nLEFT JOIN organizations o ON m.organizationId = o.id\nWHERE u.email = 'mariomicrotel@gmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user wjjXWQDGjB7WrTn.ac8865d956e8 --database 3e8SkZx3sJxzLsSkfWugGu --execute SELECT u.id, u.email, u.name, m.organizationId, m.role, o.name as org_name\nFROM users u\nLEFT JOIN memberships m ON u.id = m.userId\nLEFT JOIN organizations o ON m.organizationId = o.id\nWHERE u.email = 'mariomicrotel@gmail.com';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'm.userid' in 'on clause'"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "query": "SELECT id, slug, name FROM organizations LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user wjjXWQDGjB7WrTn.ac8865d956e8 --database 3e8SkZx3sJxzLsSkfWugGu --execute SELECT id, slug, name FROM organizations LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "slug": "coro-demo",
+      "name": "Coro Polifonico Demo"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tslug\tname\n1\tcoro-demo\tCoro Polifonico Demo\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

@@ -1,0 +1,18 @@
+{
+  "query": "SELECT m.id, m.user_id, m.organization_id, m.role, u.email, o.name as org_name\nFROM memberships m\nJOIN users u ON m.user_id = u.id\nJOIN organizations o ON m.organization_id = o.id\nWHERE u.email = 'mariomicrotel@gmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user wjjXWQDGjB7WrTn.ac8865d956e8 --database 3e8SkZx3sJxzLsSkfWugGu --execute SELECT m.id, m.user_id, m.organization_id, m.role, u.email, o.name as org_name\nFROM memberships m\nJOIN users u ON m.user_id = u.id\nJOIN organizations o ON m.organization_id = o.id\nWHERE u.email = 'mariomicrotel@gmail.com';",
+  "rows": [
+    {
+      "id": "2",
+      "user_id": "1",
+      "organization_id": "1",
+      "role": "admin",
+      "email": "mariomicrotel@gmail.com",
+      "org_name": "Coro Polifonico Demo"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuser_id\torganization_id\trole\temail\torg_name\n2\t1\t1\tadmin\tmariomicrotel@gmail.com\tCoro Polifonico Demo\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

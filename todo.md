@@ -203,3 +203,12 @@
 - [ ] Routing dinamico basato su ruolo utente
 - [ ] Endpoint backend per statistiche per sezione
 - [ ] Endpoint backend per statistiche globali coro
+
+
+## Bug Fix Completato: Membership e Tenant Context
+
+- [x] Risolto errore "Organization not found" 
+- [x] Creata membership per utente loggato nel database
+- [x] Aggiunto endpoint auth.myOrganizations
+- [x] Creata pagina SelectOrganization per multi-tenant
+- [x] Sistema funzionante con tenant context corretto
