@@ -138,3 +138,52 @@
 - [ ] Seed data demo
 - [ ] Documentazione utente
 - [ ] Checkpoint finale
+
+
+## Nuove Funzionalità: Pagine Profilo per Ruolo
+
+### Profilo Corista Base
+- [x] Pagina profilo con dati personali (nome, email, telefono, indirizzo)
+- [x] Modifica sezione vocale e informazioni di contatto
+- [x] Visualizzazione statistiche presenze personali
+- [x] Storico eventi partecipati
+- [ ] Upload foto profilo
+- [ ] Gestione documenti personali
+
+### Profilo Capo Sezione
+- [ ] Vista membri della propria sezione vocale
+- [ ] Statistiche presenze per sezione
+- [ ] Report presenze sezione (export CSV)
+- [ ] Comunicazioni interne sezione
+
+### Profilo Segretario
+- [ ] Dashboard iscrizioni pending
+- [ ] Approvazione/rifiuto iscrizioni con motivazione
+- [ ] Vista completa membri con filtri avanzati
+- [ ] Export lista membri (CSV/PDF)
+- [ ] Gestione comunicazioni massive
+
+### Profilo Direttore
+- [ ] Dashboard statistiche coro complete
+- [ ] Vista presenze globali per evento
+- [ ] Report presenze per sezione vocale
+- [ ] Gestione repertorio e setlist
+- [ ] Pianificazione stagione artistica
+
+### Profilo Admin
+- [ ] Gestione completa organizzazione
+- [ ] Configurazione impostazioni coro
+- [ ] Gestione ruoli e permessi
+- [ ] Statistiche finanziarie
+- [ ] Backup e export dati
+
+
+### Sistema Login e Seed Dati
+- [ ] Pagina login personalizzata con form credenziali
+- [ ] Integrazione autenticazione locale (email/password)
+- [x] Script seed dati demo completo
+- [x] Organizzazione demo con tutti i ruoli
+- [x] Eventi demo (prove, concerti passati e futuri)
+- [x] Pagamenti demo con vari stati
+- [x] Presenze registrate per statistiche
+- [x] Iscrizioni pending per test approvazioni

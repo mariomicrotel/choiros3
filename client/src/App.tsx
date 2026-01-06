@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Calendar from "./pages/Calendar";
+import Profile from "./pages/Profile";
 import AdminMembers from "./pages/admin/AdminMembers";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminPayments from "./pages/admin/AdminPayments";
@@ -29,6 +30,12 @@ function Router() {
       <Route path={"/calendar"}>
         <DashboardLayout>
           <Calendar />
+        </DashboardLayout>
+      </Route>
+
+      <Route path={"/profile"}>
+        <DashboardLayout>
+          <Profile />
         </DashboardLayout>
       </Route>
 

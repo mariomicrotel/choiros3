@@ -426,6 +426,41 @@ export const appRouter = router({
     myAttendance: memberProcedure.query(async ({ ctx }) => {
       return getAttendanceByUser(ctx.user!.id, ctx.organizationId!);
     }),
+
+    stats: memberProcedure.input(z.object({}).optional()).query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      // Get total events for the organization
+      const totalEventsResult = await db
+        .select({ count: db.$count(events.id) })
+        .from(events)
+        .where(eq(events.organizationId, ctx.organizationId!));
+
+      const totalEvents = totalEventsResult[0]?.count || 0;
+
+      // Get attended events for the user
+      const attendedEventsResult = await db
+        .select({ count: db.$count(attendance.id) })
+        .from(attendance)
+        .where(
+          and(
+            eq(attendance.userId, ctx.user!.id),
+            eq(attendance.status, "present")
+          )!
+        );
+
+      const attendedEvents = attendedEventsResult[0]?.count || 0;
+
+      // Calculate attendance rate
+      const attendanceRate = totalEvents > 0 ? (attendedEvents / totalEvents) * 100 : 0;
+
+      return {
+        totalEvents,
+        attendedEvents,
+        attendanceRate,
+      };
+    }),
   }),
 
   // ============================================================================
@@ -500,6 +535,17 @@ export const appRouter = router({
           .where(and(eq(payments.id, input.paymentId), eq(payments.organizationId, ctx.organizationId!))!);
 
         return { success: true };
+      }),
+
+    myPayments: tenantProtectedProcedure
+      .input(
+        z.object({
+          limit: z.number().default(50),
+          offset: z.number().default(0),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        return getPaymentsByUser(ctx.user!.id, ctx.organizationId!);
       }),
   }),
 
