@@ -212,3 +212,13 @@
 - [x] Aggiunto endpoint auth.myOrganizations
 - [x] Creata pagina SelectOrganization per multi-tenant
 - [x] Sistema funzionante con tenant context corretto
+
+
+## Fix: Redirect Automatico Organizzazione
+
+- [x] Modificare Home.tsx per controllare membership utente
+- [x] Implementare redirect automatico a /t/{slug}/ se utente ha organizzazione
+- [x] Mostrare pagina SelectOrganization se utente ha multiple membership
+- [x] Gestire caso utente senza organizzazione
+- [x] Creato componente TenantRoute per proteggere route
+- [x] Wrappate tutte le route dashboard/admin/checkin con TenantRoute

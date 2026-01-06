@@ -15,6 +15,7 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import CheckIn from "./pages/CheckIn";
 import EventQRCode from "./pages/EventQRCode";
 import DashboardLayout from "./components/DashboardLayout";
+import TenantRoute from "./components/TenantRoute";
 
 function Router() {
   return (
@@ -24,53 +25,69 @@ function Router() {
       
       {/* Dashboard Routes */}
       <Route path={"/dashboard"}>
-        <DashboardLayout>
-          <Dashboard />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <Dashboard />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
       
       <Route path={"/calendar"}>
-        <DashboardLayout>
-          <Calendar />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <Calendar />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
 
       <Route path={"/profile"}>
-        <DashboardLayout>
-          <Profile />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <Profile />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
 
       {/* Admin Routes */}
       <Route path={"/admin/members"}>
-        <DashboardLayout>
-          <AdminMembers />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <AdminMembers />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
 
       <Route path={"/admin/events"}>
-        <DashboardLayout>
-          <AdminEvents />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <AdminEvents />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
 
       <Route path={"/admin/payments"}>
-        <DashboardLayout>
-          <AdminPayments />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <AdminPayments />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
 
       {/* Check-in Routes */}
       <Route path={"/checkin"}>
-        <DashboardLayout>
-          <CheckIn />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <CheckIn />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
 
       <Route path={"/events/:id/qr"}>
-        <DashboardLayout>
-          <EventQRCode />
-        </DashboardLayout>
+        <TenantRoute>
+          <DashboardLayout>
+            <EventQRCode />
+          </DashboardLayout>
+        </TenantRoute>
       </Route>
 
       <Route path={"/404"} component={NotFound} />
