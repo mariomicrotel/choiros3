@@ -261,3 +261,11 @@
 - [x] Modificato oauth.ts per leggere returnTo e reindirizzare correttamente
 - [x] Aggiornato DashboardLayout per passare window.location.pathname come returnTo
 - [ ] Testare flusso completo: /t/coro-demo/dashboard → login → callback → /t/coro-demo/dashboard
+
+
+## Bug Fix: Loop Redirect Home.tsx
+
+- [x] Problema: Home.tsx fa redirect anche quando utente è già su URL con tenant
+- [x] Soluzione: rimossa logica redirect automatico da Home.tsx
+- [x] Aggiunto messaggio "Benvenuto in ChoirOS" con pulsante per accedere a coro demo
+- [x] TenantRoute gestisce correttamente protezione route con tenant context

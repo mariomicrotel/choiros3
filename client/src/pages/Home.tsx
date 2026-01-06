@@ -3,23 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLoginUrl } from "@/const";
 import { Music, Calendar, Users, CreditCard, QrCode, Mail } from "lucide-react";
-import { Link, useLocation } from "wouter";
-import { useEffect } from "react";
+import { Link } from "wouter";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    // Redirect authenticated users to their organization
-    if (isAuthenticated && user?.user && user?.organization) {
-      // User has an organization: redirect directly
-      window.location.href = `/t/${user.organization.slug}/dashboard`;
-    } else if (isAuthenticated && user?.user && !user?.organization) {
-      // User authenticated but no organization: show selection/onboarding
-      setLocation("/select-org");
-    }
-  }, [isAuthenticated, user, setLocation]);
 
   if (loading) {
     return (
@@ -29,9 +16,34 @@ export default function Home() {
     );
   }
 
-  // Show landing page for non-authenticated users
+  // If user is authenticated, show a simple message to access tenant URL
   if (isAuthenticated) {
-    return null; // Will redirect via useEffect
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>Benvenuto in ChoirOS</CardTitle>
+            <CardDescription>
+              Per accedere alla dashboard del tuo coro, usa l'URL completo con il nome dell'organizzazione.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm">
+              <p className="mb-2"><strong>Esempio:</strong></p>
+              <code className="block bg-muted p-2 rounded text-xs">
+                /t/coro-demo/dashboard
+              </code>
+            </div>
+            <Button 
+              className="w-full" 
+              onClick={() => window.location.href = "/t/coro-demo/dashboard"}
+            >
+              Vai a Coro Demo
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
