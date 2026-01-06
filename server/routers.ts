@@ -37,7 +37,7 @@ import {
   getSetlistById,
   getSetlistItems,
 } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, count } from "drizzle-orm";
 import {
   organizations,
   users,
@@ -475,7 +475,7 @@ export const appRouter = router({
 
       // Get total events for the organization
       const totalEventsResult = await db
-        .select({ count: db.$count(events.id) })
+        .select({ count: count(events.id) })
         .from(events)
         .where(eq(events.organizationId, ctx.organizationId!));
 
@@ -483,7 +483,7 @@ export const appRouter = router({
 
       // Get attended events for the user
       const attendedEventsResult = await db
-        .select({ count: db.$count(attendance.id) })
+        .select({ count: count(attendance.id) })
         .from(attendance)
         .where(
           and(

@@ -280,3 +280,12 @@
 - [x] Modificato main.tsx per includere header nelle richieste tRPC
 - [x] Modificato tenantContext.ts per leggere header x-tenant-slug
 - [ ] Testare accesso a /t/coro-demo/dashboard dopo fix
+
+
+## Bug Fix: Errori Pagina Profilo
+
+- [x] Errore SQL: query count malformata `select (select count(*) from 'id')`
+- [x] Errore React Hooks: "Rendered fewer hooks than expected" in Profile.tsx
+- [x] Identificata query problematica: db.$count() in routers.ts riga 478 e 486
+- [x] Corretto: importato count da drizzle-orm e usato count(events.id)
+- [x] Corretto: spostato return condizionale dopo tutti gli hooks in Profile.tsx

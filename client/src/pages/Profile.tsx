@@ -25,30 +25,14 @@ import { it } from "date-fns/locale";
 
 export default function Profile() {
   const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const utils = trpc.useUtils();
 
   // Fetch membership to get role
   const { data: membership } = trpc.tenant.membership.useQuery(
     undefined,
     { enabled: !!user?.user?.id }
   );
-
-  // Route to appropriate profile based on role
-  if (membership) {
-    const role = membership.role;
-    if (role === "admin") {
-      return <ProfileAdmin />;
-    } else if (role === "director") {
-      return <ProfileDirettore />;
-    } else if (role === "secretary") {
-      return <ProfileSegretario />;
-    } else if (role === "capo_section") {
-      return <ProfileCapoSezione />;
-    }
-    // For member and guest, show default profile below
-  }
-  const [isEditing, setIsEditing] = useState(false);
-
-  const utils = trpc.useUtils();
 
   // Fetch user profile
   const { data: profile, isLoading } = trpc.users.get.useQuery(
@@ -100,6 +84,21 @@ export default function Profile() {
       toast.error("Errore durante l'aggiornamento: " + error.message);
     },
   });
+
+  // Route to appropriate profile based on role (after all hooks)
+  if (membership) {
+    const role = membership.role;
+    if (role === "admin") {
+      return <ProfileAdmin />;
+    } else if (role === "director") {
+      return <ProfileDirettore />;
+    } else if (role === "secretary") {
+      return <ProfileSegretario />;
+    } else if (role === "capo_section") {
+      return <ProfileCapoSezione />;
+    }
+    // For member and guest, show default profile below
+  }
 
   const handleEdit = () => {
     if (profile) {
