@@ -222,3 +222,11 @@
 - [x] Gestire caso utente senza organizzazione
 - [x] Creato componente TenantRoute per proteggere route
 - [x] Wrappate tutte le route dashboard/admin/checkin con TenantRoute
+
+
+## Fix: Routing Tenant Pattern /t/{slug}/
+
+- [x] Aggiungere route pattern /t/:slug/* in App.tsx
+- [x] Configurare tutte le route per accettare prefisso tenant
+- [x] Aggiornate route: dashboard, calendar, profile, admin/*, checkin, events/:id/qr
+- [x] Mantenuta route legacy /dashboard per backward compatibility

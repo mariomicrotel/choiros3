@@ -23,8 +23,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/select-org"} component={SelectOrganization} />
       
-      {/* Dashboard Routes */}
-      <Route path={"/dashboard"}>
+      {/* Tenant Routes with /t/:slug prefix */}
+      <Route path="/t/:slug/dashboard">
         <TenantRoute>
           <DashboardLayout>
             <Dashboard />
@@ -32,7 +32,8 @@ function Router() {
         </TenantRoute>
       </Route>
       
-      <Route path={"/calendar"}>
+      
+      <Route path="/t/:slug/calendar">
         <TenantRoute>
           <DashboardLayout>
             <Calendar />
@@ -40,7 +41,8 @@ function Router() {
         </TenantRoute>
       </Route>
 
-      <Route path={"/profile"}>
+      
+      <Route path="/t/:slug/profile">
         <TenantRoute>
           <DashboardLayout>
             <Profile />
@@ -48,8 +50,9 @@ function Router() {
         </TenantRoute>
       </Route>
 
-      {/* Admin Routes */}
-      <Route path={"/admin/members"}>
+      
+      {/* Admin Routes with tenant prefix */}
+      <Route path="/t/:slug/admin/members">
         <TenantRoute>
           <DashboardLayout>
             <AdminMembers />
@@ -57,7 +60,8 @@ function Router() {
         </TenantRoute>
       </Route>
 
-      <Route path={"/admin/events"}>
+      
+      <Route path="/t/:slug/admin/events">
         <TenantRoute>
           <DashboardLayout>
             <AdminEvents />
@@ -65,7 +69,8 @@ function Router() {
         </TenantRoute>
       </Route>
 
-      <Route path={"/admin/payments"}>
+      
+      <Route path="/t/:slug/admin/payments">
         <TenantRoute>
           <DashboardLayout>
             <AdminPayments />
@@ -73,8 +78,9 @@ function Router() {
         </TenantRoute>
       </Route>
 
-      {/* Check-in Routes */}
-      <Route path={"/checkin"}>
+      
+      {/* Check-in Routes with tenant prefix */}
+      <Route path="/t/:slug/checkin">
         <TenantRoute>
           <DashboardLayout>
             <CheckIn />
@@ -82,7 +88,8 @@ function Router() {
         </TenantRoute>
       </Route>
 
-      <Route path={"/events/:id/qr"}>
+      
+      <Route path="/t/:slug/events/:id/qr">
         <TenantRoute>
           <DashboardLayout>
             <EventQRCode />
@@ -90,6 +97,16 @@ function Router() {
         </TenantRoute>
       </Route>
 
+      
+      {/* Legacy routes without tenant prefix - redirect to home */}
+      <Route path="/dashboard">
+        <TenantRoute>
+          <DashboardLayout>
+            <Dashboard />
+          </DashboardLayout>
+        </TenantRoute>
+      </Route>
+      
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
