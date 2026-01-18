@@ -12,6 +12,15 @@ import {
   superAdminProcedure,
 } from "./_core/tenantProcedures";
 import { z } from "zod";
+import { sendEmail } from "./emailService";
+import {
+  generateEventInviteEmail,
+  generateRegistrationConfirmationEmail,
+  generateRegistrationApprovalEmail,
+  generateRegistrationRejectionEmail,
+  generatePaymentDueEmail,
+  generatePaymentConfirmationEmail,
+} from "./emailTemplates";
 import {
   getDb,
   getOrganizationBySlug,
@@ -51,6 +60,7 @@ import {
   songAssets,
   setlists,
   setlistItems,
+  registrations,
 } from "../drizzle/schema";
 
 export const appRouter = router({
@@ -295,6 +305,25 @@ export const appRouter = router({
           status: "pending",
         });
 
+        // Send confirmation email
+        try {
+          const emailData = generateRegistrationConfirmationEmail({
+            recipientName: input.fullName,
+            voiceSection: input.voiceSection || "Non specificata",
+            organizationName: org.name,
+          });
+
+          await sendEmail({
+            to: input.email,
+            toName: input.fullName,
+            subject: "Richiesta di iscrizione ricevuta",
+            htmlContent: emailData.html,
+            textContent: emailData.text,
+          });
+        } catch (error) {
+          console.error("Error sending registration confirmation email:", error);
+        }
+
         return registration;
       }),
 
@@ -310,6 +339,34 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const registration = await updateRegistrationStatus(input.registrationId, "approved", ctx.user!.id);
+
+        // Send approval email
+        try {
+          const db = await getDb();
+          if (db) {
+            const reg = await db.select().from(registrations).where(eq(registrations.id, input.registrationId)).limit(1);
+            const org = await db.select().from(organizations).where(eq(organizations.id, ctx.organizationId!)).limit(1);
+
+            if (reg[0] && org[0]) {
+              const emailData = generateRegistrationApprovalEmail({
+                recipientName: reg[0].fullName || "Corista",
+                loginUrl: `${process.env.VITE_OAUTH_PORTAL_URL}`,
+                organizationName: org[0].name,
+              });
+
+              await sendEmail({
+                to: reg[0].email,
+                toName: reg[0].fullName || "Corista",
+                subject: "Iscrizione approvata!",
+                htmlContent: emailData.html,
+                textContent: emailData.text,
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error sending approval email:", error);
+        }
+
         return registration;
       }),
 
@@ -322,6 +379,34 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const registration = await updateRegistrationStatus(input.registrationId, "rejected", ctx.user!.id, input.reason);
+
+        // Send rejection email
+        try {
+          const db = await getDb();
+          if (db) {
+            const reg = await db.select().from(registrations).where(eq(registrations.id, input.registrationId)).limit(1);
+            const org = await db.select().from(organizations).where(eq(organizations.id, ctx.organizationId!)).limit(1);
+
+            if (reg[0] && org[0]) {
+              const emailData = generateRegistrationRejectionEmail({
+                recipientName: reg[0].fullName || "Corista",
+                reason: input.reason,
+                organizationName: org[0].name,
+              });
+
+              await sendEmail({
+                to: reg[0].email,
+                toName: reg[0].fullName || "Corista",
+                subject: "Richiesta di iscrizione",
+                htmlContent: emailData.html,
+                textContent: emailData.text,
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error sending rejection email:", error);
+        }
+
         return registration;
       }),
   }),
@@ -376,7 +461,43 @@ export const appRouter = router({
           ...input,
         } as any);
 
-        return { success: true, eventId: Number(result[0].insertId) };
+        const eventId = Number(result[0].insertId);
+
+        // Send email invitations to all active members
+        try {
+          const members = await db
+            .select()
+            .from(memberships)
+            .innerJoin(users, eq(memberships.userId, users.id))
+            .where(and(eq(memberships.organizationId, ctx.organizationId!), eq(memberships.status, "active"))!);
+
+          const org = await db.select().from(organizations).where(eq(organizations.id, ctx.organizationId!)).limit(1);
+          const organizationName = org[0]?.name || "Coro";
+
+          for (const member of members) {
+            const emailData = generateEventInviteEmail({
+              recipientName: member.users.name || member.users.email || "Corista",
+              eventTitle: input.title,
+              eventType: input.type,
+              eventDate: input.startAt,
+              eventLocation: input.locationString,
+              eventUrl: `${process.env.VITE_FRONTEND_FORGE_API_URL}/events/${eventId}`,
+              organizationName,
+            });
+
+            await sendEmail({
+              to: member.users.email || "",
+              toName: member.users.name || member.users.email || "Corista",
+              subject: `Nuovo evento: ${input.title}`,
+              htmlContent: emailData.html,
+              textContent: emailData.text,
+            });
+          }
+        } catch (error) {
+          console.error("Error sending event invitation emails:", error);
+        }
+
+        return { success: true, eventId };
       }),
 
     update: directorProcedure
@@ -530,7 +651,38 @@ export const appRouter = router({
           status: "pending",
         } as any);
 
-        return { success: true, paymentId: Number(result[0].insertId) };
+        const paymentId = Number(result[0].insertId);
+
+        // Send payment due email if dueAt is set
+        if (input.dueAt) {
+          try {
+            const user = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
+            const org = await db.select().from(organizations).where(eq(organizations.id, ctx.organizationId!)).limit(1);
+
+            if (user[0] && org[0]) {
+              const emailData = generatePaymentDueEmail({
+                recipientName: user[0].name || user[0].email || "Corista",
+                amount: input.amountCents,
+                dueDate: input.dueAt,
+                description: input.description || "Pagamento",
+                paymentUrl: `${process.env.VITE_FRONTEND_FORGE_API_URL}/payments/${paymentId}`,
+                organizationName: org[0].name,
+              });
+
+              await sendEmail({
+                to: user[0].email || "",
+                toName: user[0].name || user[0].email || "Corista",
+                subject: "Pagamento in scadenza",
+                htmlContent: emailData.html,
+                textContent: emailData.text,
+              });
+            }
+          } catch (error) {
+            console.error("Error sending payment due email:", error);
+          }
+        }
+
+        return { success: true, paymentId };
       }),
 
     list: tenantProtectedProcedure
@@ -575,6 +727,37 @@ export const appRouter = router({
             updatedAt: new Date(),
           })
           .where(and(eq(payments.id, input.paymentId), eq(payments.organizationId, ctx.organizationId!))!);
+
+        // Send payment confirmation email if completed
+        if (input.status === "completed") {
+          try {
+            const payment = await db.select().from(payments).where(eq(payments.id, input.paymentId)).limit(1);
+            if (payment[0]) {
+              const user = await db.select().from(users).where(eq(users.id, payment[0].userId)).limit(1);
+              const org = await db.select().from(organizations).where(eq(organizations.id, ctx.organizationId!)).limit(1);
+
+              if (user[0] && org[0]) {
+                const emailData = generatePaymentConfirmationEmail({
+                  recipientName: user[0].name || user[0].email || "Corista",
+                  amount: payment[0].amountCents,
+                  paymentDate: new Date(),
+                  description: payment[0].description || "Pagamento",
+                  organizationName: org[0].name,
+                });
+
+                await sendEmail({
+                  to: user[0].email || "",
+                  toName: user[0].name || user[0].email || "Corista",
+                  subject: "Pagamento confermato",
+                  htmlContent: emailData.html,
+                  textContent: emailData.text,
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error sending payment confirmation email:", error);
+          }
+        }
 
         return { success: true };
       }),

@@ -92,13 +92,14 @@
 ## Phase 3: Notifiche Email
 
 ### Sistema Email
-- [ ] Setup queue asincrona (Bull + Redis)
-- [ ] Template email HTML responsive
-- [ ] Job email invito evento
-- [ ] Job email promemoria 24h prima evento
-- [ ] Job email conferma iscrizione
-- [ ] Job email approvazione/rifiuto iscrizione
-- [ ] Job email scadenza pagamento
+- [x] Setup Mailjet con sistema mock per sviluppo (node-mailjet installato)
+- [x] Template email HTML responsive (6 template implementati)
+- [x] Email invito evento (inviata automaticamente alla creazione)
+- [ ] Job email promemoria 24h prima evento (richiede scheduler - TODO)
+- [x] Email conferma iscrizione (inviata automaticamente)
+- [x] Email approvazione/rifiuto iscrizione (inviata automaticamente)
+- [x] Email scadenza pagamento (inviata se dueAt è impostato)
+- [x] Email conferma pagamento (inviata quando status diventa completed)
 
 ## Phase 4: Repository Brani
 
