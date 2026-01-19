@@ -290,3 +290,22 @@
 - [x] Identificata query problematica: db.$count() in routers.ts riga 478 e 486
 - [x] Corretto: importato count da drizzle-orm e usato count(events.id)
 - [x] Corretto: spostato return condizionale dopo tutti gli hooks in Profile.tsx
+
+
+## Phase 5: Redesign UI con Stile Sneat
+
+### Design System
+- [x] Analizzare template Sneat e estrarre design tokens
+- [x] Aggiornare palette colori (primary #696cff, success #71dd37, danger #ff3e1d, warning #ffab00, info #03c3ec)
+- [x] Aggiornare tipografia e spacing
+- [x] Definire border-radius system (0.5rem)
+
+### Layout Components
+- [x] Ridisegnare DashboardLayout con sidebar stile Sneat
+- [x] Implementare menu sidebar con icone colorate e hover effects
+- [x] Aggiornare header con design Sneat
+
+### UI Components
+- [x] Aggiornare stile Card con ombre morbide (shadow-md hover:shadow-lg) e bordi arrotondati (rounded-lg)
+- [x] Aggiornare Badge con rounded-full e colori vibranti
+- [x] Applicare design tokens Sneat a tutti i componenti
