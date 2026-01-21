@@ -274,7 +274,14 @@ export default function AdminPayments() {
                 {payments.map((payment) => (
                   <TableRow key={payment.id}>
                     <TableCell className="font-medium">#{payment.id}</TableCell>
-                    <TableCell>Utente #{payment.userId}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{payment.userName || payment.userEmail || `Utente #${payment.userId}`}</span>
+                        {payment.voiceSection && (
+                          <span className="text-xs text-muted-foreground">{payment.voiceSection}</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{getTypeBadge(payment.type)}</TableCell>
                     <TableCell className="font-semibold">
                       €{(payment.amountCents / 100).toFixed(2)}

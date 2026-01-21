@@ -309,3 +309,11 @@
 - [x] Aggiornare stile Card con ombre morbide (shadow-md hover:shadow-lg) e bordi arrotondati (rounded-lg)
 - [x] Aggiornare Badge con rounded-full e colori vibranti
 - [x] Applicare design tokens Sneat a tutti i componenti
+
+
+## Fix: Visualizzazione Utente in Gestione Pagamenti
+
+- [x] Modificare query backend payments.list per includere nome, cognome e sezione vocale utente
+- [x] Aggiornare frontend AdminPayments per mostrare "Nome Cognome (Sezione)" invece di "Utente #ID"
+- [x] Testare visualizzazione con dati demo
+- [ ] Committare modifiche su GitHub

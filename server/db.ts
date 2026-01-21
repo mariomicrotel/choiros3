@@ -452,7 +452,7 @@ export async function getPaymentsByOrganization(
     limit?: number;
     offset?: number;
   }
-): Promise<Payment[]> {
+): Promise<any[]> {
   const db = await getDb();
   if (!db) return [];
 
@@ -465,7 +465,25 @@ export async function getPaymentsByOrganization(
     conditions.push(eq(payments.type, filters.type));
   }
 
-  let query = db.select().from(payments).where(and(...conditions)).orderBy(desc(payments.createdAt));
+  // Join with users and userProfiles to get name and voice section
+  const { getTableColumns } = await import("drizzle-orm");
+  const paymentColumns = getTableColumns(payments);
+  
+  let query = db
+    .select({
+      ...paymentColumns,
+      userName: users.name,
+      userEmail: users.email,
+      voiceSection: userProfiles.voiceSection,
+    })
+    .from(payments)
+    .leftJoin(users, eq(payments.userId, users.id))
+    .leftJoin(userProfiles, and(
+      eq(userProfiles.userId, users.id),
+      eq(userProfiles.organizationId, organizationId)
+    ))
+    .where(and(...conditions))
+    .orderBy(desc(payments.createdAt));
 
   if (filters?.limit) {
     query = query.limit(filters.limit) as any;
