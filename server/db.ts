@@ -596,3 +596,149 @@ export async function getSetlistItems(setlistId: number): Promise<SetlistItem[]>
 
   return db.select().from(setlistItems).where(eq(setlistItems.setlistId, setlistId)).orderBy(setlistItems.order);
 }
+
+
+// ============================================================================
+// PROFILE STATISTICS
+// ============================================================================
+
+export async function getProfileStats(userId: number, organizationId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const { eq, and, count, sum, desc } = await import("drizzle-orm");
+
+  // Get user profile
+  const profile = await getUserProfile(userId, organizationId);
+  if (!profile) return null;
+
+  // Get attendance stats
+  const attendanceStats = await db
+    .select({ count: count(attendance.id) })
+    .from(attendance)
+    .where(
+      and(
+        eq(attendance.userId, userId),
+        eq(attendance.status, "present")
+      )!
+    );
+
+  const totalAttended = attendanceStats[0]?.count || 0;
+
+  // Get total events for organization
+  const totalEventsStats = await db
+    .select({ count: count(events.id) })
+    .from(events)
+    .where(eq(events.organizationId, organizationId));
+
+  const totalEvents = totalEventsStats[0]?.count || 0;
+
+  // Get payment stats
+  const paymentStats = await db
+    .select({
+      total: count(payments.id),
+      completed: count(payments.id),
+      pending: count(payments.id),
+      totalAmount: sum(payments.amountCents),
+    })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.userId, userId),
+        eq(payments.organizationId, organizationId)
+      )!
+    );
+
+  // Get completed and pending separately
+  const completedPayments = await db
+    .select({ count: count(payments.id), amount: sum(payments.amountCents) })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.userId, userId),
+        eq(payments.organizationId, organizationId),
+        eq(payments.status, "completed")
+      )!
+    );
+
+  const pendingPayments = await db
+    .select({ count: count(payments.id), amount: sum(payments.amountCents) })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.userId, userId),
+        eq(payments.organizationId, organizationId),
+        eq(payments.status, "pending")
+      )!
+    );
+
+  // Get recent payments
+  const recentPayments = await db
+    .select()
+    .from(payments)
+    .where(
+      and(
+        eq(payments.userId, userId),
+        eq(payments.organizationId, organizationId)
+      )!
+    )
+    .orderBy(desc(payments.createdAt))
+    .limit(5);
+
+  // Get recent attendance
+  const recentAttendance = await db
+    .select({
+      id: attendance.id,
+      eventId: attendance.eventId,
+      status: attendance.status,
+      checkInAt: attendance.checkInAt,
+      eventTitle: events.title,
+      eventType: events.type,
+      eventStartAt: events.startAt,
+    })
+    .from(attendance)
+    .leftJoin(events, eq(attendance.eventId, events.id))
+    .where(eq(attendance.userId, userId))
+    .orderBy(desc(attendance.checkInAt))
+    .limit(5);
+
+  // Get user email for registration lookup
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  // Get registration info
+  const registration = user[0]?.email
+    ? await db
+        .select()
+        .from(registrations)
+        .where(
+          and(
+            eq(registrations.organizationId, organizationId),
+            eq(registrations.email, user[0].email)
+          )!
+        )
+        .limit(1)
+    : [];
+
+  return {
+    profile,
+    attendance: {
+      total: totalAttended,
+      totalEvents,
+      rate: totalEvents > 0 ? (totalAttended / totalEvents) * 100 : 0,
+      recent: recentAttendance,
+    },
+    payments: {
+      total: paymentStats[0]?.total || 0,
+      completed: completedPayments[0]?.count || 0,
+      pending: pendingPayments[0]?.count || 0,
+      totalAmount: Number(completedPayments[0]?.amount || 0),
+      pendingAmount: Number(pendingPayments[0]?.amount || 0),
+      recent: recentPayments,
+    },
+    registration: registration[0] || null,
+  };
+}

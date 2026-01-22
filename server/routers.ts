@@ -862,6 +862,35 @@ export const appRouter = router({
   }),
 
   // ============================================================================
+  // PROFILE ROUTES
+  // ============================================================================
+  profile: router({
+    stats: memberProcedure.query(async ({ ctx }) => {
+      const { getProfileStats } = await import("./db");
+      return getProfileStats(ctx.user!.id, ctx.organizationId!);
+    }),
+
+    updatePhoto: memberProcedure
+      .input(z.object({ photoUrl: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+
+        await db
+          .update(userProfiles)
+          .set({ profilePhotoUrl: input.photoUrl, updatedAt: new Date() })
+          .where(
+            and(
+              eq(userProfiles.userId, ctx.user!.id),
+              eq(userProfiles.organizationId, ctx.organizationId!)
+            )!
+          );
+
+        return { success: true };
+      }),
+  }),
+
+  // ============================================================================
   // SETLISTS ROUTES
   // ============================================================================
   setlists: router({

@@ -120,6 +120,7 @@ export const userProfiles = mysqlTable(
     postalCode: varchar("postal_code", { length: 20 }),
     country: varchar("country", { length: 100 }),
     voiceSection: mysqlEnum("voice_section", ["soprano", "mezzo_soprano", "alto", "tenor", "baritone", "bass"]),
+    profilePhotoUrl: text("profile_photo_url"),
     status: mysqlEnum("status", ["active", "suspended", "exited"]).default("active").notNull(),
     notes: text("notes"),
     tags: json("tags").$type<string[]>(),

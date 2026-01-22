@@ -316,4 +316,20 @@
 - [x] Modificare query backend payments.list per includere nome, cognome e sezione vocale utente
 - [x] Aggiornare frontend AdminPayments per mostrare "Nome Cognome (Sezione)" invece di "Utente #ID"
 - [x] Testare visualizzazione con dati demo
-- [ ] Committare modifiche su GitHub
+- [x] Committare modifiche localmente (commit a68206f)
+- [ ] Push su GitHub (problema autenticazione token - richiede intervento utente)
+
+
+## Feature: Pagina Profilo Completa
+
+- [x] Aggiungere campo profilePhotoUrl allo schema userProfiles
+- [x] Eseguire db:push per applicare modifiche schema
+- [x] Creare query backend per statistiche profilo (eventi, pagamenti, iscrizioni)
+- [x] Implementare UI pagina profilo con sezioni:
+  - [x] Header con foto profilo e dati anagrafici
+  - [x] Card statistiche partecipazione eventi
+  - [x] Card storico pagamenti
+  - [x] Card cronologia iscrizioni
+- [x] Implementare upload foto profilo (base64 temporaneo)
+- [x] Testare funzionalità completa
+- [ ] Committare modifiche

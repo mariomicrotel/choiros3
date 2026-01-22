@@ -1,10 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import ProfileCapoSezione from "./ProfileCapoSezione";
-import ProfileSegretario from "./ProfileSegretario";
-import ProfileDirettore from "./ProfileDirettore";
-import ProfileAdmin from "./ProfileAdmin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,15 +14,48 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Phone, MapPin, Music, Calendar, TrendingUp } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Music, 
+  Calendar, 
+  TrendingUp, 
+  Upload,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  CreditCard,
+  CalendarCheck,
+  UserCheck
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+// Storage upload will be handled via tRPC
 
 export default function Profile() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
+
+  // Fetch complete profile stats
+  const { data: profileData, isLoading } = trpc.profile.stats.useQuery(
+    undefined,
+    { enabled: !!user?.user?.id }
+  );
 
   // Fetch membership to get role
   const { data: membership } = trpc.tenant.membership.useQuery(
@@ -34,36 +63,13 @@ export default function Profile() {
     { enabled: !!user?.user?.id }
   );
 
-  // Fetch user profile
-  const { data: profile, isLoading } = trpc.users.get.useQuery(
-    { userId: user?.user?.id || 0 },
-    { enabled: !!user?.user?.id }
-  );
-
-  // Fetch attendance stats
-  const { data: stats } = trpc.attendance.stats.useQuery({}, { enabled: !!user?.user?.id });
-
-  // Fetch recent attendance
-  const { data: recentAttendance = [] } = trpc.attendance.myAttendance.useQuery(
-    undefined,
-    { enabled: !!user?.user?.id }
-  );
-
-  // Fetch payments
-  const { data: payments = [] } = trpc.payments.myPayments.useQuery(
-    { limit: 10 },
-    { enabled: !!user?.user?.id }
-  );
-
-  type VoiceSection = "soprano" | "mezzo_soprano" | "alto" | "tenor" | "baritone" | "bass";
-  
   const [formData, setFormData] = useState<{
     phone: string;
     address: string;
     city: string;
     postalCode: string;
     country: string;
-    voiceSection: VoiceSection | "";
+    voiceSection: "soprano" | "mezzo_soprano" | "alto" | "tenor" | "baritone" | "bass" | "";
   }>({
     phone: "",
     address: "",
@@ -73,11 +79,25 @@ export default function Profile() {
     voiceSection: "",
   });
 
+  // Update form data when profile loads
+  useState(() => {
+    if (profileData?.profile) {
+      setFormData({
+        phone: profileData.profile.phone || "",
+        address: profileData.profile.address || "",
+        city: profileData.profile.city || "",
+        postalCode: profileData.profile.postalCode || "",
+        country: profileData.profile.country || "Italia",
+        voiceSection: profileData.profile.voiceSection || "",
+      });
+    }
+  });
+
   // Update profile mutation
   const updateProfileMutation = trpc.users.update.useMutation({
     onSuccess: () => {
       toast.success("Profilo aggiornato con successo!");
-      utils.users.get.invalidate();
+      utils.profile.stats.invalidate();
       setIsEditing(false);
     },
     onError: (error) => {
@@ -85,55 +105,113 @@ export default function Profile() {
     },
   });
 
-  // Route to appropriate profile based on role (after all hooks)
-  if (membership) {
-    const role = membership.role;
-    if (role === "admin") {
-      return <ProfileAdmin />;
-    } else if (role === "director") {
-      return <ProfileDirettore />;
-    } else if (role === "secretary") {
-      return <ProfileSegretario />;
-    } else if (role === "capo_section") {
-      return <ProfileCapoSezione />;
-    }
-    // For member and guest, show default profile below
-  }
-
-  const handleEdit = () => {
-    if (profile) {
-      setFormData({
-        phone: profile.phone || "",
-        address: profile.address || "",
-        city: profile.city || "",
-        postalCode: profile.postalCode || "",
-        country: profile.country || "Italia",
-        voiceSection: profile.voiceSection || "",
-      });
-    }
-    setIsEditing(true);
-  };
+  // Update photo mutation
+  const updatePhotoMutation = trpc.profile.updatePhoto.useMutation({
+    onSuccess: () => {
+      toast.success("Foto profilo aggiornata!");
+      utils.profile.stats.invalidate();
+      setIsUploadingPhoto(false);
+    },
+    onError: (error) => {
+      toast.error("Errore durante l'upload: " + error.message);
+      setIsUploadingPhoto(false);
+    },
+  });
 
   const handleSave = () => {
     if (!user?.user?.id) return;
 
     updateProfileMutation.mutate({
       userId: user.user.id,
-      phone: formData.phone,
-      address: formData.address,
-      city: formData.city,
-      postalCode: formData.postalCode,
-      country: formData.country,
+      ...formData,
       voiceSection: formData.voiceSection || undefined,
     } as any);
   };
 
-  const getVoiceSectionLabel = (section: string | null) => {
-    if (!section) return "Non assegnata";
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Il file è troppo grande. Dimensione massima: 5MB");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Seleziona un'immagine valida (JPG, PNG, etc.)");
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+
+    try {
+      // Convert file to base64 for demo
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        // For now, use a placeholder URL
+        // In production, implement proper S3 upload via tRPC
+        updatePhotoMutation.mutate({ photoUrl: base64String });
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Errore durante l'upload della foto");
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, { variant: "default" | "secondary" | "destructive"; icon: any }> = {
+      active: { variant: "default", icon: CheckCircle2 },
+      suspended: { variant: "secondary", icon: Clock },
+      exited: { variant: "destructive", icon: XCircle },
+    };
+
+    const config = variants[status] || variants.active;
+    const Icon = config.icon;
+
+    return (
+      <Badge variant={config.variant} className="gap-1">
+        <Icon className="h-3 w-3" />
+        {status === "active" ? "Attivo" : status === "suspended" ? "Sospeso" : "Uscito"}
+      </Badge>
+    );
+  };
+
+  const getPaymentStatusBadge = (status: string) => {
+    const variants: Record<string, { variant: "default" | "secondary" | "destructive" }> = {
+      completed: { variant: "default" },
+      pending: { variant: "secondary" },
+      failed: { variant: "destructive" },
+    };
+
+    const config = variants[status] || variants.pending;
+
+    return (
+      <Badge variant={config.variant}>
+        {status === "completed" ? "Completato" : status === "pending" ? "In Sospeso" : "Fallito"}
+      </Badge>
+    );
+  };
+
+  const getPaymentTypeBadge = (type: string) => {
+    const labels: Record<string, string> = {
+      membership_fee: "Quota Associativa",
+      event_fee: "Quota Evento",
+      donation: "Donazione",
+    };
+
+    return <Badge variant="outline">{labels[type] || type}</Badge>;
+  };
+
+  const getVoiceSectionLabel = (section: string) => {
     const labels: Record<string, string> = {
       soprano: "Soprano",
       mezzo_soprano: "Mezzosoprano",
-      alto: "Alto",
+      alto: "Contralto",
       tenor: "Tenore",
       baritone: "Baritono",
       bass: "Basso",
@@ -141,295 +219,454 @@ export default function Profile() {
     return labels[section] || section;
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge variant="default">Attivo</Badge>;
-      case "suspended":
-        return <Badge variant="secondary">Sospeso</Badge>;
-      case "exited":
-        return <Badge variant="destructive">Uscito</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getPaymentStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge variant="default">Pagato</Badge>;
-      case "pending":
-        return <Badge variant="secondary">In Sospeso</Badge>;
-      case "failed":
-        return <Badge variant="destructive">Fallito</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  if (isLoading) {
+  if (isLoading || !profileData) {
     return (
-      <div className="container py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Caricamento profilo...</p>
         </div>
       </div>
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="container py-8">
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">Profilo non trovato</CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const { profile, attendance, payments, registration } = profileData;
+  const userName = user?.user?.name || user?.user?.email || "Utente";
+  const userInitials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
-    <div className="container py-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Il Mio Profilo</h1>
-          <p className="text-muted-foreground mt-2">Gestisci le tue informazioni personali</p>
-        </div>
-        {!isEditing ? (
-          <Button onClick={handleEdit}>Modifica Profilo</Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(false)}>
-              Annulla
-            </Button>
-            <Button onClick={handleSave} disabled={updateProfileMutation.isPending}>
-              {updateProfileMutation.isPending ? "Salvataggio..." : "Salva"}
-            </Button>
-          </div>
-        )}
-      </div>
+    <div className="space-y-6">
+      {/* Header con foto profilo */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            {/* Avatar */}
+            <div className="relative">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={profile.profilePhotoUrl || undefined} alt={userName} />
+                <AvatarFallback className="text-2xl">{userInitials}</AvatarFallback>
+              </Avatar>
+              <Button
+                size="sm"
+                variant="outline"
+                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingPhoto}
+              >
+                <Upload className="h-4 w-4" />
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+            </div>
 
+            {/* Info utente */}
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-bold">{userName}</h1>
+                {profile.status && getStatusBadge(profile.status)}
+              </div>
+              <div className="space-y-1 text-sm text-muted-foreground">
+                {user?.user?.email && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    {user.user.email}
+                  </div>
+                )}
+                {profile.phone && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    {profile.phone}
+                  </div>
+                )}
+                {profile.voiceSection && (
+                  <div className="flex items-center gap-2">
+                    <Music className="h-4 w-4" />
+                    {getVoiceSectionLabel(profile.voiceSection)}
+                  </div>
+                )}
+                {membership?.role && (
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="h-4 w-4" />
+                    Ruolo: <Badge variant="secondary">{membership.role}</Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Statistiche rapide */}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-primary">{attendance.total}</div>
+                <div className="text-xs text-muted-foreground">Presenze</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-primary">{attendance.rate.toFixed(0)}%</div>
+                <div className="text-xs text-muted-foreground">Tasso</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-primary">{payments.completed}</div>
+                <div className="text-xs text-muted-foreground">Pagamenti</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabs con dettagli */}
       <Tabs defaultValue="info" className="space-y-4">
         <TabsList>
           <TabsTrigger value="info">Informazioni</TabsTrigger>
-          <TabsTrigger value="attendance">Presenze</TabsTrigger>
+          <TabsTrigger value="attendance">Partecipazione</TabsTrigger>
           <TabsTrigger value="payments">Pagamenti</TabsTrigger>
+          <TabsTrigger value="history">Cronologia</TabsTrigger>
         </TabsList>
 
-        {/* Info Tab */}
+        {/* Tab Informazioni */}
         <TabsContent value="info" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Personal Info Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Informazioni Personali
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Nome Completo
-                  </Label>
-                  <Input value={user?.user?.name || ""} disabled />
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Dati Anagrafici</CardTitle>
+                  <CardDescription>Le tue informazioni personali</CardDescription>
                 </div>
-
+                {!isEditing ? (
+                  <Button onClick={() => setIsEditing(true)}>Modifica</Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setIsEditing(false)}>
+                      Annulla
+                    </Button>
+                    <Button onClick={handleSave} disabled={updateProfileMutation.isPending}>
+                      Salva
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Label>
-                  <Input value={user?.user?.email || ""} disabled />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Telefono
-                  </Label>
+                  <Label htmlFor="phone">Telefono</Label>
                   <Input
-                    value={isEditing ? formData.phone : profile.phone || ""}
+                    id="phone"
+                    value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     disabled={!isEditing}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Music className="h-4 w-4" />
-                    Sezione Vocale
-                  </Label>
-                  {isEditing ? (
-                    <Select value={formData.voiceSection} onValueChange={(value) => setFormData({ ...formData, voiceSection: value as VoiceSection })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleziona sezione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="soprano">Soprano</SelectItem>
-                        <SelectItem value="mezzo_soprano">Mezzosoprano</SelectItem>
-                        <SelectItem value="alto">Alto</SelectItem>
-                        <SelectItem value="tenor">Tenore</SelectItem>
-                        <SelectItem value="baritone">Baritono</SelectItem>
-                        <SelectItem value="bass">Basso</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="text-lg font-semibold">{getVoiceSectionLabel(profile.voiceSection)}</div>
-                  )}
+                  <Label htmlFor="voiceSection">Sezione Vocale</Label>
+                  <Select
+                    value={formData.voiceSection}
+                    onValueChange={(value) => setFormData({ ...formData, voiceSection: value as any })}
+                    disabled={!isEditing}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleziona sezione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="soprano">Soprano</SelectItem>
+                      <SelectItem value="mezzo_soprano">Mezzosoprano</SelectItem>
+                      <SelectItem value="alto">Contralto</SelectItem>
+                      <SelectItem value="tenor">Tenore</SelectItem>
+                      <SelectItem value="baritone">Baritono</SelectItem>
+                      <SelectItem value="bass">Basso</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Stato</Label>
-                  {getStatusBadge(profile.status)}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Address Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Indirizzo
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Indirizzo</Label>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="address">Indirizzo</Label>
                   <Input
-                    value={isEditing ? formData.address : profile.address || ""}
+                    id="address"
+                    value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     disabled={!isEditing}
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Città</Label>
-                    <Input
-                      value={isEditing ? formData.city : profile.city || ""}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      disabled={!isEditing}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>CAP</Label>
-                    <Input
-                      value={isEditing ? formData.postalCode : profile.postalCode || ""}
-                      onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label>Paese</Label>
+                  <Label htmlFor="city">Città</Label>
                   <Input
-                    value={isEditing ? formData.country : profile.country || ""}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     disabled={!isEditing}
                   />
                 </div>
 
-                {profile.createdAt && (
-                  <div className="space-y-2 pt-4 border-t">
-                    <Label>Membro dal</Label>
-                    <div className="text-lg font-semibold">{format(new Date(profile.createdAt), "d MMMM yyyy", { locale: it })}</div>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">CAP</Label>
+                  <Input
+                    id="postalCode"
+                    value={formData.postalCode}
+                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">Paese</Label>
+                  <Input
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab Partecipazione */}
+        <TabsContent value="attendance" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Presenze Totali</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{attendance.total}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Su {attendance.totalEvents} eventi totali
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Tasso Presenza</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">{attendance.rate.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground mt-1">Media partecipazione</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Eventi Recenti</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{attendance.recent.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">Ultimi check-in</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Statistics Card */}
-          {stats && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Le Mie Statistiche
-                </CardTitle>
-                <CardDescription>Riepilogo delle tue presenze</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Eventi Totali</p>
-                    <p className="text-3xl font-bold">{stats.totalEvents}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Presenze</p>
-                    <p className="text-3xl font-bold text-green-600">{stats.attendedEvents}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Tasso Presenze</p>
-                    <p className="text-3xl font-bold">{stats.attendanceRate.toFixed(1)}%</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* Attendance Tab */}
-        <TabsContent value="attendance">
           <Card>
             <CardHeader>
               <CardTitle>Storico Presenze</CardTitle>
-              <CardDescription>Le tue ultime presenze registrate</CardDescription>
+              <CardDescription>Le tue ultime partecipazioni agli eventi</CardDescription>
             </CardHeader>
             <CardContent>
-              {recentAttendance.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Nessuna presenza registrata</p>
+              {attendance.recent.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Nessuna presenza registrata
+                </p>
               ) : (
-                <div className="space-y-2">
-                  {recentAttendance.map((att) => (
-                    <div key={att.id} className="flex items-center justify-between border-b pb-2">
-                      <div>
-                        <p className="font-medium">Evento #{att.eventId}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Check-in: {format(new Date(att.checkInAt), "d MMM yyyy HH:mm", { locale: it })}
-                        </p>
-                      </div>
-                      <Badge variant="default">Presente</Badge>
-                    </div>
-                  ))}
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Evento</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Stato</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attendance.recent.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.eventTitle}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{item.eventType}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {item.eventStartAt
+                            ? format(new Date(item.eventStartAt), "d MMM yyyy", { locale: it })
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={item.status === "present" ? "default" : "secondary"}>
+                            {item.status === "present" ? "Presente" : "Assente"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Payments Tab */}
-        <TabsContent value="payments">
+        {/* Tab Pagamenti */}
+        <TabsContent value="payments" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Totale Pagato</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">
+                  €{(payments.totalAmount / 100).toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {payments.completed} pagamenti completati
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">In Sospeso</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-orange-600">
+                  €{(payments.pendingAmount / 100).toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {payments.pending} pagamenti da completare
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Pagamenti Totali</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{payments.total}</div>
+                <p className="text-xs text-muted-foreground mt-1">Tutte le transazioni</p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>I Miei Pagamenti</CardTitle>
-              <CardDescription>Storico quote e pagamenti</CardDescription>
+              <CardTitle>Storico Pagamenti</CardTitle>
+              <CardDescription>I tuoi ultimi pagamenti registrati</CardDescription>
             </CardHeader>
             <CardContent>
-              {payments.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Nessun pagamento registrato</p>
+              {payments.recent.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Nessun pagamento registrato
+                </p>
               ) : (
-                <div className="space-y-2">
-                  {payments.map((payment: any) => (
-                    <div key={payment.id} className="flex items-center justify-between border-b pb-2">
-                      <div>
-                        <p className="font-medium">{payment.description || `Pagamento #${payment.id}`}</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Descrizione</TableHead>
+                      <TableHead>Importo</TableHead>
+                      <TableHead>Scadenza</TableHead>
+                      <TableHead>Stato</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.recent.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>{getPaymentTypeBadge(payment.type)}</TableCell>
+                        <TableCell>{payment.description || "-"}</TableCell>
+                        <TableCell className="font-semibold">
+                          €{(payment.amountCents / 100).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          {payment.dueAt
+                            ? format(new Date(payment.dueAt), "d MMM yyyy", { locale: it })
+                            : "-"}
+                        </TableCell>
+                        <TableCell>{getPaymentStatusBadge(payment.status)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab Cronologia */}
+        <TabsContent value="history" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Cronologia Iscrizione</CardTitle>
+              <CardDescription>La tua storia con l'organizzazione</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {registration ? (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-primary/10 p-3">
+                      <UserCheck className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold">Richiesta Iscrizione</h3>
+                        <Badge
+                          variant={
+                            registration.status === "approved"
+                              ? "default"
+                              : registration.status === "pending"
+                              ? "secondary"
+                              : "destructive"
+                          }
+                        >
+                          {registration.status === "approved"
+                            ? "Approvata"
+                            : registration.status === "pending"
+                            ? "In Attesa"
+                            : "Rifiutata"}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Inviata il {format(new Date(registration.createdAt), "d MMMM yyyy", { locale: it })}
+                      </p>
+                      {registration.reviewedAt && (
                         <p className="text-sm text-muted-foreground">
-                          {payment.dueAt && `Scadenza: ${format(new Date(payment.dueAt), "d MMM yyyy", { locale: it })}`}
+                          Revisionata il{" "}
+                          {format(new Date(registration.reviewedAt), "d MMMM yyyy", { locale: it })}
+                        </p>
+                      )}
+                      {registration.rejectionReason && (
+                        <p className="text-sm text-destructive mt-2">
+                          Motivo rifiuto: {registration.rejectionReason}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {profile.createdAt && (
+                    <div className="flex items-start gap-4">
+                      <div className="rounded-full bg-green-100 dark:bg-green-900/20 p-3">
+                        <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold mb-1">Membro Attivo</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Dal {format(new Date(profile.createdAt), "d MMMM yyyy", { locale: it })}
                         </p>
                       </div>
-                      <div className="text-right space-y-1">
-                        <p className="font-semibold">€{(payment.amountCents / 100).toFixed(2)}</p>
-                        {getPaymentStatusBadge(payment.status)}
-                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  Nessuna cronologia disponibile
+                </p>
               )}
             </CardContent>
           </Card>
