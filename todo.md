@@ -332,4 +332,4 @@
   - [x] Card cronologia iscrizioni
 - [x] Implementare upload foto profilo (base64 temporaneo)
 - [x] Testare funzionalità completa
-- [ ] Committare modifiche
+- [x] Committare modifiche (commit 8ddbfa3)
