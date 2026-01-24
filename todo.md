@@ -333,3 +333,12 @@
 - [x] Implementare upload foto profilo (base64 temporaneo)
 - [x] Testare funzionalità completa
 - [x] Committare modifiche (commit 8ddbfa3)
+
+
+## Task: Dati Demo per Test Completi
+
+- [x] Creare script Node.js con Drizzle ORM per dati demo (eventi, presenze, pagamenti, RSVP)
+- [x] Eseguire script e verificare inserimento corretto (6 eventi, 3 presenze, 3 RSVP, 4 pagamenti)
+- [x] Testare pagina profilo con statistiche popolate (3 presenze, 50% tasso, €70 pagato, €65 in sospeso)
+- [x] Testare dashboard con dati realistici (2 pagamenti in sospeso, 100% tasso presenze)
+- [ ] Committare script demo su GitHub
