@@ -30,6 +30,15 @@ export const organizations = mysqlTable(
     slug: varchar("slug", { length: 64 }).notNull().unique(),
     name: varchar("name", { length: 255 }).notNull(),
     logoUrl: text("logo_url"),
+    // Dati fiscali e contatti
+    fiscalCode: varchar("fiscal_code", { length: 16 }),
+    vatNumber: varchar("vat_number", { length: 11 }),
+    billingEmail: varchar("billing_email", { length: 320 }),
+    phone: varchar("phone", { length: 20 }),
+    address: text("address"),
+    city: varchar("city", { length: 100 }),
+    postalCode: varchar("postal_code", { length: 10 }),
+    country: varchar("country", { length: 2 }).default("IT"),
     colors: json("colors").$type<{
       primary: string;
       secondary: string;
@@ -406,3 +415,34 @@ export const setlistItems = mysqlTable(
 
 export type SetlistItem = typeof setlistItems.$inferSelect;
 export type InsertSetlistItem = typeof setlistItems.$inferInsert;
+
+
+// ============================================================================
+// SUBSCRIPTIONS (SaaS Billing)
+// ============================================================================
+
+export const subscriptions = mysqlTable(
+  "subscriptions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    organizationId: int("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+    plan: mysqlEnum("plan", ["monthly", "annual"]).notNull(),
+    status: mysqlEnum("status", ["active", "suspended", "expired", "cancelled"]).default("active").notNull(),
+    priceMonthly: int("price_monthly").notNull(), // in cents
+    priceAnnual: int("price_annual"), // in cents (if applicable)
+    startDate: timestamp("start_date").notNull(),
+    endDate: timestamp("end_date"),
+    nextBillingDate: timestamp("next_billing_date"),
+    cancelledAt: timestamp("cancelled_at"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    orgIdx: index("subscription_org_idx").on(table.organizationId),
+    statusIdx: index("subscription_status_idx").on(table.status),
+  })
+);
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;

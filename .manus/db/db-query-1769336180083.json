@@ -1,0 +1,30 @@
+{
+  "query": "SELECT id, email, role FROM users WHERE email = 'mariomicrotel@gmail.com';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user wjjXWQDGjB7WrTn.ac8865d956e8 --database 3e8SkZx3sJxzLsSkfWugGu --execute SELECT id, email, role FROM users WHERE email = 'mariomicrotel@gmail.com';",
+  "rows": [
+    {
+      "id": "1",
+      "email": "mariomicrotel@gmail.com",
+      "role": "admin"
+    },
+    {
+      "id": "67756",
+      "email": "mariomicrotel@gmail.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "69546",
+      "email": "mariomicrotel@gmail.com",
+      "role": "super_admin"
+    },
+    {
+      "id": "70856",
+      "email": "mariomicrotel@gmail.com",
+      "role": "super_admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\temail\trole\n1\tmariomicrotel@gmail.com\tadmin\n67756\tmariomicrotel@gmail.com\tsuper_admin\n69546\tmariomicrotel@gmail.com\tsuper_admin\n70856\tmariomicrotel@gmail.com\tsuper_admin\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

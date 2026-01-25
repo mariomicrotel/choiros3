@@ -969,41 +969,107 @@ export const appRouter = router({
   // SUPERADMIN ROUTES
   // ============================================================================
   superadmin: router({
-    createTenant: superAdminProcedure
+    // Dashboard statistics
+    stats: superAdminProcedure.query(async () => {
+      const { getSuperadminStats } = await import("./db");
+      return getSuperadminStats();
+    }),
+
+    // List all organizations with subscriptions
+    listOrganizations: superAdminProcedure.query(async () => {
+      const { getAllOrganizations } = await import("./db");
+      return getAllOrganizations();
+    }),
+
+    // Get organization details with subscription
+    getOrganization: superAdminProcedure
+      .input(z.object({ orgId: z.number() }))
+      .query(async ({ input }) => {
+        const { getOrganizationWithSubscription } = await import("./db");
+        return getOrganizationWithSubscription(input.orgId);
+      }),
+
+    // Create new organization with subscription
+    createOrganization: superAdminProcedure
       .input(
         z.object({
           slug: z.string().min(3).max(64),
           name: z.string(),
           logoUrl: z.string().optional(),
+          fiscalCode: z.string().optional(),
+          vatNumber: z.string().optional(),
+          billingEmail: z.string().email().optional(),
+          phone: z.string().optional(),
+          address: z.string().optional(),
+          city: z.string().optional(),
+          postalCode: z.string().optional(),
+          country: z.string().optional(),
+          // Subscription
+          plan: z.enum(["monthly", "annual"]),
+          priceMonthly: z.number(),
+          priceAnnual: z.number().optional(),
+          startDate: z.date(),
         })
       )
       .mutation(async ({ input }) => {
-        const db = await getDb();
-        if (!db) {
-          throw new Error("Database not available");
-        }
-
-        const result = await db.insert(organizations).values({
-          slug: input.slug,
-          name: input.name,
-          logoUrl: input.logoUrl,
-          settings: {
-            timezone: "UTC",
-            language: "it",
-            features: [],
-            allowGuests: false,
-          },
-        } as any);
-
-        return { id: Number(result[0].insertId), slug: input.slug };
+        const { createOrganizationWithSubscription } = await import("./db");
+        const orgId = await createOrganizationWithSubscription(input);
+        return { success: true, orgId };
       }),
 
-    listTenants: superAdminProcedure.query(async () => {
-      const db = await getDb();
-      if (!db) return [];
+    // Update organization
+    updateOrganization: superAdminProcedure
+      .input(
+        z.object({
+          orgId: z.number(),
+          name: z.string().optional(),
+          logoUrl: z.string().optional(),
+          fiscalCode: z.string().optional(),
+          vatNumber: z.string().optional(),
+          billingEmail: z.string().email().optional(),
+          phone: z.string().optional(),
+          address: z.string().optional(),
+          city: z.string().optional(),
+          postalCode: z.string().optional(),
+          country: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { updateOrganization } = await import("./db");
+        const { orgId, ...data } = input;
+        await updateOrganization(orgId, data);
+        return { success: true };
+      }),
 
-      return db.select().from(organizations);
-    }),
+    // Update subscription
+    updateSubscription: superAdminProcedure
+      .input(
+        z.object({
+          subscriptionId: z.number(),
+          plan: z.enum(["monthly", "annual"]).optional(),
+          status: z.enum(["active", "suspended", "expired", "cancelled"]).optional(),
+          priceMonthly: z.number().optional(),
+          priceAnnual: z.number().optional(),
+          nextBillingDate: z.date().optional(),
+          endDate: z.date().optional(),
+          notes: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { updateSubscription } = await import("./db");
+        const { subscriptionId, ...data } = input;
+        await updateSubscription(subscriptionId, data);
+        return { success: true };
+      }),
+
+    // Cancel subscription
+    cancelSubscription: superAdminProcedure
+      .input(z.object({ subscriptionId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { cancelSubscription } = await import("./db");
+        await cancelSubscription(input.subscriptionId);
+        return { success: true };
+      }),
   }),
 });
 

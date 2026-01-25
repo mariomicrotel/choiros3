@@ -16,6 +16,8 @@ import CheckIn from "./pages/CheckIn";
 import EventQRCode from "./pages/EventQRCode";
 import DashboardLayout from "./components/DashboardLayout";
 import TenantRoute from "./components/TenantRoute";
+import SuperadminDashboard from "./pages/superadmin/SuperadminDashboard";
+import SuperadminOrganizations from "./pages/superadmin/SuperadminOrganizations";
 
 function Router() {
   return (
@@ -79,6 +81,15 @@ function Router() {
       </Route>
 
       
+      {/* Superadmin Routes (no tenant prefix) */}
+      <Route path="/superadmin">
+        <SuperadminDashboard />
+      </Route>
+      
+      <Route path="/superadmin/organizations">
+        <SuperadminOrganizations />
+      </Route>
+
       {/* Check-in Routes with tenant prefix */}
       <Route path="/t/:slug/checkin">
         <TenantRoute>

@@ -342,3 +342,43 @@
 - [x] Testare pagina profilo con statistiche popolate (3 presenze, 50% tasso, €70 pagato, €65 in sospeso)
 - [x] Testare dashboard con dati realistici (2 pagamenti in sospeso, 100% tasso presenze)
 - [ ] Committare script demo su GitHub
+
+
+## Feature: Sistema Multi-Tenant con Pannello Superadmin
+
+### Database Schema
+- [x] Aggiungere tabella `subscriptions` per sottoscrizioni SaaS
+- [x] Estendere tabella `organizations` con campi: fiscal_code, vat_number, billing_email, phone, address, city, postal_code, country
+- [x] Aggiungere enum per piani sottoscrizione (monthly, annual)
+- [x] Aggiungere enum per stati sottoscrizione (active, suspended, expired, cancelled)
+- [x] Eseguire db:push per applicare migrazioni (0003_whole_gambit.sql)
+
+### Backend API
+- [x] Creare router `superadmin` con procedure protette per role=super_admin
+- [x] Implementare CRUD organizzazioni (create, list, get, update)
+- [x] Implementare CRUD sottoscrizioni (update, cancel)
+- [ ] Implementare upload logo organizzazione su S3
+- [x] Implementare query statistiche superadmin (tenant attivi, MRR, ARR, rinnovi)
+- [x] Aggiungere helper database per gestione sottoscrizioni (8 funzioni)
+
+### Frontend UI
+- [x] Creare pagina SuperadminDashboard con statistiche globali (MRR, ARR, tenant attivi, rinnovi)
+- [x] Creare pagina SuperadminOrganizations con lista tenant
+- [x] Creare dialog/form per creazione nuova organizzazione (dati fiscali + sottoscrizione)
+- [x] Aggiungere route /superadmin e /superadmin/organizations in App.tsx
+- [ ] Creare dialog/form per modifica organizzazione esistente
+- [ ] Implementare upload logo con preview
+- [ ] Creare pagina SuperadminSubscriptions per gestione sottoscrizioni
+- [x] Aggiungere badge stati sottoscrizione colorati (active, suspended, expired, cancelled)
+- [ ] Implementare filtri e ricerca organizzazioni
+
+### Testing & Deployment
+- [ ] Testare creazione nuova organizzazione con logo (richiede logout/login per refresh sessione JWT)
+- [ ] Testare gestione sottoscrizioni (attivazione, rinnovo, cancellazione)
+- [x] Testare dashboard superadmin con statistiche (query SQL funzionante)
+- [x] Verificare permessi (middleware superAdminProcedure funzionante)
+- [ ] Committare modifiche su GitHub
+
+### Known Issues
+- [ ] Cookie JWT non si aggiorna automaticamente dopo cambio ruolo utente - richiede logout/login manuale per refresh sessione
+- [ ] Pagina SuperadminOrganizations mostra skeleton infinito se sessione non è aggiornata con ruolo super_admin

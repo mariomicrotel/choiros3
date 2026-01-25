@@ -16,6 +16,7 @@ import {
   songAssets,
   setlists,
   setlistItems,
+  subscriptions,
   type Organization,
   type Membership,
   type UserProfile,
@@ -29,6 +30,8 @@ import {
   type SongAsset,
   type Setlist,
   type SetlistItem,
+  type Subscription,
+  type InsertSubscription,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -740,5 +743,290 @@ export async function getProfileStats(userId: number, organizationId: number) {
       recent: recentPayments,
     },
     registration: registration[0] || null,
+  };
+}
+
+
+// ============================================================================
+// SUPERADMIN - ORGANIZATIONS & SUBSCRIPTIONS
+// ============================================================================
+
+/**
+ * Get all organizations with subscription info (superadmin only)
+ */
+export async function getAllOrganizations() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .select({
+      id: organizations.id,
+      slug: organizations.slug,
+      name: organizations.name,
+      logoUrl: organizations.logoUrl,
+      fiscalCode: organizations.fiscalCode,
+      vatNumber: organizations.vatNumber,
+      billingEmail: organizations.billingEmail,
+      phone: organizations.phone,
+      address: organizations.address,
+      city: organizations.city,
+      postalCode: organizations.postalCode,
+      country: organizations.country,
+      createdAt: organizations.createdAt,
+      updatedAt: organizations.updatedAt,
+      // Subscription info
+      subscriptionId: subscriptions.id,
+      subscriptionPlan: subscriptions.plan,
+      subscriptionStatus: subscriptions.status,
+      subscriptionStartDate: subscriptions.startDate,
+      subscriptionEndDate: subscriptions.endDate,
+      subscriptionNextBillingDate: subscriptions.nextBillingDate,
+      priceMonthly: subscriptions.priceMonthly,
+      priceAnnual: subscriptions.priceAnnual,
+    })
+    .from(organizations)
+    .leftJoin(subscriptions, eq(organizations.id, subscriptions.organizationId))
+    .orderBy(desc(organizations.createdAt));
+}
+
+/**
+ * Get organization by ID with subscription (superadmin only)
+ */
+export async function getOrganizationWithSubscription(orgId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select({
+      id: organizations.id,
+      slug: organizations.slug,
+      name: organizations.name,
+      logoUrl: organizations.logoUrl,
+      fiscalCode: organizations.fiscalCode,
+      vatNumber: organizations.vatNumber,
+      billingEmail: organizations.billingEmail,
+      phone: organizations.phone,
+      address: organizations.address,
+      city: organizations.city,
+      postalCode: organizations.postalCode,
+      country: organizations.country,
+      colors: organizations.colors,
+      settings: organizations.settings,
+      createdAt: organizations.createdAt,
+      updatedAt: organizations.updatedAt,
+      // Subscription info
+      subscriptionId: subscriptions.id,
+      subscriptionPlan: subscriptions.plan,
+      subscriptionStatus: subscriptions.status,
+      subscriptionStartDate: subscriptions.startDate,
+      subscriptionEndDate: subscriptions.endDate,
+      subscriptionNextBillingDate: subscriptions.nextBillingDate,
+      subscriptionCancelledAt: subscriptions.cancelledAt,
+      priceMonthly: subscriptions.priceMonthly,
+      priceAnnual: subscriptions.priceAnnual,
+      subscriptionNotes: subscriptions.notes,
+    })
+    .from(organizations)
+    .leftJoin(subscriptions, eq(organizations.id, subscriptions.organizationId))
+    .where(eq(organizations.id, orgId))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+/**
+ * Create new organization with subscription (superadmin only)
+ */
+export async function createOrganizationWithSubscription(data: {
+  // Organization data
+  slug: string;
+  name: string;
+  logoUrl?: string;
+  fiscalCode?: string;
+  vatNumber?: string;
+  billingEmail?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  // Subscription data
+  plan: "monthly" | "annual";
+  priceMonthly: number;
+  priceAnnual?: number;
+  startDate: Date;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Insert organization
+  const orgResult = await db.insert(organizations).values({
+    slug: data.slug,
+    name: data.name,
+    logoUrl: data.logoUrl,
+    fiscalCode: data.fiscalCode,
+    vatNumber: data.vatNumber,
+    billingEmail: data.billingEmail,
+    phone: data.phone,
+    address: data.address,
+    city: data.city,
+    postalCode: data.postalCode,
+    country: data.country || "IT",
+  });
+
+  const orgId = orgResult[0].insertId;
+
+  // Calculate next billing date
+  const nextBillingDate = new Date(data.startDate);
+  if (data.plan === "monthly") {
+    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+  } else {
+    nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+  }
+
+  // Insert subscription
+  await db.insert(subscriptions).values({
+    organizationId: orgId,
+    plan: data.plan,
+    status: "active",
+    priceMonthly: data.priceMonthly,
+    priceAnnual: data.priceAnnual,
+    startDate: data.startDate,
+    nextBillingDate,
+  });
+
+  return orgId;
+}
+
+/**
+ * Update organization (superadmin only)
+ */
+export async function updateOrganization(
+  orgId: number,
+  data: Partial<{
+    name: string;
+    logoUrl: string;
+    fiscalCode: string;
+    vatNumber: string;
+    billingEmail: string;
+    phone: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(organizations).set(data).where(eq(organizations.id, orgId));
+}
+
+/**
+ * Update subscription (superadmin only)
+ */
+export async function updateSubscription(
+  subscriptionId: number,
+  data: Partial<{
+    plan: "monthly" | "annual";
+    status: "active" | "suspended" | "expired" | "cancelled";
+    priceMonthly: number;
+    priceAnnual: number;
+    nextBillingDate: Date;
+    endDate: Date;
+    notes: string;
+  }>
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(subscriptions)
+    .set(data)
+    .where(eq(subscriptions.id, subscriptionId));
+}
+
+/**
+ * Cancel subscription (superadmin only)
+ */
+export async function cancelSubscription(subscriptionId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(subscriptions)
+    .set({
+      status: "cancelled",
+      cancelledAt: new Date(),
+    })
+    .where(eq(subscriptions.id, subscriptionId));
+}
+
+/**
+ * Get superadmin dashboard statistics
+ */
+export async function getSuperadminStats() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Count organizations by status
+  const orgStats = await db
+    .select({
+      total: organizations.id,
+      activeSubscriptions: subscriptions.status,
+    })
+    .from(organizations)
+    .leftJoin(subscriptions, eq(organizations.id, subscriptions.organizationId));
+
+  const totalOrgs = orgStats.length;
+  const activeOrgs = orgStats.filter((o) => o.activeSubscriptions === "active").length;
+  const suspendedOrgs = orgStats.filter((o) => o.activeSubscriptions === "suspended").length;
+
+  // Calculate monthly recurring revenue (MRR)
+  const revenueData = await db
+    .select({
+      priceMonthly: subscriptions.priceMonthly,
+      priceAnnual: subscriptions.priceAnnual,
+      plan: subscriptions.plan,
+      status: subscriptions.status,
+    })
+    .from(subscriptions)
+    .where(eq(subscriptions.status, "active"));
+
+  const mrr = revenueData.reduce((sum, sub) => {
+    if (sub.plan === "monthly") {
+      return sum + (sub.priceMonthly || 0);
+    } else {
+      // Annual plans contribute 1/12 to MRR
+      return sum + (sub.priceAnnual || 0) / 12;
+    }
+  }, 0);
+
+  // Get upcoming renewals (next 30 days)
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+  const upcomingRenewals = await db
+    .select()
+    .from(subscriptions)
+    .where(
+      and(
+        eq(subscriptions.status, "active"),
+        lte(subscriptions.nextBillingDate, thirtyDaysFromNow)
+      )!
+    );
+
+  return {
+    organizations: {
+      total: totalOrgs,
+      active: activeOrgs,
+      suspended: suspendedOrgs,
+      cancelled: totalOrgs - activeOrgs - suspendedOrgs,
+    },
+    revenue: {
+      mrr: Math.round(mrr), // in cents
+      arr: Math.round(mrr * 12), // Annual Recurring Revenue
+    },
+    upcomingRenewals: upcomingRenewals.length,
   };
 }
