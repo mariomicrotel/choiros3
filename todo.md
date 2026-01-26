@@ -382,3 +382,18 @@
 ### Known Issues
 - [ ] Cookie JWT non si aggiorna automaticamente dopo cambio ruolo utente - richiede logout/login manuale per refresh sessione
 - [ ] Pagina SuperadminOrganizations mostra skeleton infinito se sessione non è aggiornata con ruolo super_admin
+
+
+## Fix: Risoluzione Known Issues JWT Session Refresh
+
+### Problema
+- [x] Cookie JWT non si aggiorna automaticamente dopo cambio ruolo utente
+- [x] Pagine superadmin mostrano skeleton infinito se sessione non è aggiornata
+
+### Soluzione Implementata
+- [x] Creare endpoint auth.refreshSession per rigenerare JWT con dati DB aggiornati
+- [x] Aggiungere hook useSessionRefresh per auto-refresh in pagine protette
+- [x] Implementare auto-refresh in SuperadminDashboard
+- [x] Implementare auto-refresh in SuperadminOrganizations
+- [x] Testare flusso: cambio ruolo DB → auto-refresh → accesso superadmin (SUCCESSO!)
+- [ ] Committare fix su GitHub

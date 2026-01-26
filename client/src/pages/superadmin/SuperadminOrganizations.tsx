@@ -22,8 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Building2, Calendar, Euro } from "lucide-react";
+import { useSessionRefresh } from "@/hooks/useSessionRefresh";
 
 export default function SuperadminOrganizations() {
+  // Auto-refresh session to ensure we have latest role/permissions
+  const { isRefreshing } = useSessionRefresh();
+  
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     slug: "",

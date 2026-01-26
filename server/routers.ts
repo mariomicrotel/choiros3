@@ -97,6 +97,36 @@ export const appRouter = router({
       return { success: true } as const;
     }),
 
+    /**
+     * Refresh session - forces re-fetch of user data from database
+     * This invalidates any cached user info and returns fresh data
+     */
+    refreshSession: protectedProcedure.query(async (opts) => {
+      const user = opts.ctx.user;
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Extract tenant context with fresh DB data
+      const { extractTenantContext } = await import("./_core/tenantContext");
+      const tenantCtx = await extractTenantContext(opts.ctx);
+
+      return {
+        user,
+        organization: tenantCtx
+          ? {
+              id: tenantCtx.organization.id,
+              slug: tenantCtx.organization.slug,
+              name: tenantCtx.organization.name,
+              logoUrl: tenantCtx.organization.logoUrl,
+              colors: tenantCtx.organization.colors,
+            }
+          : null,
+        role: tenantCtx?.userRole || null,
+        refreshed: true,
+      };
+    }),
+
     // Get user's organizations
     myOrganizations: protectedProcedure.query(async ({ ctx }) => {
       const db = await getDb();

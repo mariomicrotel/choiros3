@@ -1,8 +1,12 @@
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, TrendingUp, Calendar, AlertCircle } from "lucide-react";
+import { useSessionRefresh } from "@/hooks/useSessionRefresh";
 
 export default function SuperadminDashboard() {
+  // Auto-refresh session to ensure we have latest role/permissions
+  const { isRefreshing } = useSessionRefresh();
+  
   const { data: stats, isLoading } = trpc.superadmin.stats.useQuery();
 
   if (isLoading) {
