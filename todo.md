@@ -426,3 +426,20 @@
 ### Commit
 - [x] Committare dialog modifica organizzazione (commit 275c3ef)
 - [x] Aggiornare todo.md con task completati
+
+
+## Task: Creazione README.md per Repository GitHub
+
+- [x] Creare README.md completo con:
+  - [x] Descrizione progetto e obiettivi
+  - [x] Lista funzionalità principali
+  - [x] Stack tecnologico (React, TypeScript, tRPC, Drizzle, PostgreSQL)
+  - [x] Architettura multi-tenant SaaS
+  - [x] Istruzioni installazione e setup
+  - [x] Configurazione variabili ambiente
+  - [x] Script disponibili (dev, build, db:push, test)
+  - [x] Documentazione API tRPC
+  - [x] Screenshot interfaccia utente
+  - [x] Roadmap e funzionalità future
+  - [x] Contributing guidelines
+  - [x] Licenza
