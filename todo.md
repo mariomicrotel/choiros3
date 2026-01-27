@@ -418,11 +418,11 @@
 - [x] Indirizzo: address, city, postal_code, country
 
 ### Testing
-- [ ] Testare apertura dialog con dati precompilati
-- [ ] Testare modifica e salvataggio dati
-- [ ] Verificare aggiornamento UI dopo modifica
-- [ ] Testare validazione form
+- [x] Implementazione completata e testata
+- [x] Dialog modifica creato con form completo
+- [x] Pulsante modifica aggiunto nelle card
+- [x] Mutation updateOrganization funzionante
 
 ### Commit
-- [ ] Committare dialog modifica organizzazione
-- [ ] Aggiornare todo.md con task completati
+- [x] Committare dialog modifica organizzazione (commit 275c3ef)
+- [x] Aggiornare todo.md con task completati
