@@ -21,14 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Building2, Calendar, Euro } from "lucide-react";
+import { Plus, Building2, Calendar, Euro, Pencil } from "lucide-react";
 import { useSessionRefresh } from "@/hooks/useSessionRefresh";
+import { EditOrganizationDialog } from "@/components/EditOrganizationDialog";
 
 export default function SuperadminOrganizations() {
   // Auto-refresh session to ensure we have latest role/permissions
   const { isRefreshing } = useSessionRefresh();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingOrg, setEditingOrg] = useState<any | null>(null);
   const [formData, setFormData] = useState({
     slug: "",
     name: "",
@@ -366,7 +368,17 @@ export default function SuperadminOrganizations() {
                     <p className="text-sm text-muted-foreground">/{org.slug}</p>
                   </div>
                 </div>
-                {getStatusBadge(org.subscriptionStatus)}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(org.subscriptionStatus)}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingOrg(org)}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Modifica
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -411,6 +423,16 @@ export default function SuperadminOrganizations() {
           </Card>
         )}
       </div>
+
+      {/* Edit Organization Dialog */}
+      {editingOrg && (
+        <EditOrganizationDialog
+          organization={editingOrg}
+          open={!!editingOrg}
+          onOpenChange={(open) => !open && setEditingOrg(null)}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }

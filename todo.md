@@ -396,4 +396,33 @@
 - [x] Implementare auto-refresh in SuperadminDashboard
 - [x] Implementare auto-refresh in SuperadminOrganizations
 - [x] Testare flusso: cambio ruolo DB → auto-refresh → accesso superadmin (SUCCESSO!)
-- [ ] Committare fix su GitHub
+- [x] Committare fix su GitHub (commit 5cd3555)
+
+
+## Task: Dialog Modifica Organizzazione
+
+### Backend
+- [x] Endpoint superadmin.updateOrganization già esistente
+
+### Frontend
+- [x] Creare componente EditOrganizationDialog con form completo
+- [x] Aggiungere pulsante "Modifica" nelle card organizzazioni
+- [x] Implementare mutation updateOrganization con invalidazione cache
+- [x] Gestire stati loading/success/error nel dialog
+- [x] Popolare form con dati organizzazione esistente
+
+### Form Fields
+- [x] Dati base: nome organizzazione
+- [x] Contatti: billing_email, phone
+- [x] Dati fiscali: fiscal_code, vat_number
+- [x] Indirizzo: address, city, postal_code, country
+
+### Testing
+- [ ] Testare apertura dialog con dati precompilati
+- [ ] Testare modifica e salvataggio dati
+- [ ] Verificare aggiornamento UI dopo modifica
+- [ ] Testare validazione form
+
+### Commit
+- [ ] Committare dialog modifica organizzazione
+- [ ] Aggiornare todo.md con task completati
