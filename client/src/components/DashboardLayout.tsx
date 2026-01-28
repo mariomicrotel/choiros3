@@ -125,6 +125,7 @@ function DashboardLayoutContent({
     const baseItems = [
       { icon: LayoutDashboard, label: "Dashboard", path: `/t/${tenantSlug}/dashboard` },
       { icon: Calendar, label: "Calendario", path: `/t/${tenantSlug}/calendar` },
+      { icon: Music, label: "Brani", path: `/t/${tenantSlug}/songs` },
       { icon: UserCircle, label: "Profilo", path: `/t/${tenantSlug}/profile` },
     ];
 

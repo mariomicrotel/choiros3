@@ -565,6 +565,87 @@ export async function getSongAssets(songId: number): Promise<SongAsset[]> {
   return db.select().from(songAssets).where(eq(songAssets.songId, songId));
 }
 
+export async function createSong(data: {
+  organizationId: number;
+  title: string;
+  composer?: string;
+  arranger?: string;
+  language?: string;
+  durationSeconds?: number;
+  difficulty?: number;
+  tempoBpm?: number;
+  key?: string;
+  categories?: string[];
+  tags?: string[];
+  createdBy: number;
+}): Promise<Song | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [result] = await db.insert(songs).values(data).$returningId();
+  if (!result?.id) return null;
+
+  return await getSongById(result.id, data.organizationId);
+}
+
+export async function updateSong(
+  songId: number,
+  organizationId: number,
+  data: Partial<Omit<Song, "id" | "organizationId" | "createdAt" | "updatedAt" | "createdBy">>
+): Promise<Song | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  await db
+    .update(songs)
+    .set({ ...data, updatedAt: new Date() })
+    .where(and(eq(songs.id, songId), eq(songs.organizationId, organizationId)));
+
+  return await getSongById(songId, organizationId);
+}
+
+export async function deleteSong(songId: number, organizationId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  await db
+    .delete(songs)
+    .where(and(eq(songs.id, songId), eq(songs.organizationId, organizationId)));
+
+  return true;
+}
+
+export async function createSongAsset(data: {
+  songId: number;
+  type: "score_pdf" | "reference_audio" | "section_stem" | "lyrics" | "youtube_link";
+  url: string;
+  fileKey?: string;
+  voiceSection?: "soprano" | "mezzo_soprano" | "alto" | "tenor" | "baritone" | "bass" | "all";
+  mimeType?: string;
+  fileSize?: number;
+  uploadedBy: number;
+}): Promise<SongAsset | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [result] = await db.insert(songAssets).values(data).$returningId();
+  if (!result?.id) return null;
+
+  const [asset] = await db.select().from(songAssets).where(eq(songAssets.id, result.id));
+  return asset || null;
+}
+
+export async function deleteSongAsset(assetId: number, songId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  await db
+    .delete(songAssets)
+    .where(and(eq(songAssets.id, assetId), eq(songAssets.songId, songId)));
+
+  return true;
+}
+
 // ============================================================================
 // SETLIST MANAGEMENT
 // ============================================================================
@@ -598,6 +679,93 @@ export async function getSetlistItems(setlistId: number): Promise<SetlistItem[]>
   if (!db) return [];
 
   return db.select().from(setlistItems).where(eq(setlistItems.setlistId, setlistId)).orderBy(setlistItems.order);
+}
+
+export async function createSetlist(data: {
+  organizationId: number;
+  eventId?: number;
+  title: string;
+  notes?: string;
+  createdBy: number;
+}): Promise<Setlist | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [result] = await db.insert(setlists).values(data).$returningId();
+  if (!result?.id) return null;
+
+  return await getSetlistById(result.id, data.organizationId);
+}
+
+export async function updateSetlist(
+  setlistId: number,
+  organizationId: number,
+  data: Partial<Omit<Setlist, "id" | "organizationId" | "createdAt" | "updatedAt" | "createdBy">>
+): Promise<Setlist | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  await db
+    .update(setlists)
+    .set({ ...data, updatedAt: new Date() })
+    .where(and(eq(setlists.id, setlistId), eq(setlists.organizationId, organizationId)));
+
+  return await getSetlistById(setlistId, organizationId);
+}
+
+export async function deleteSetlist(setlistId: number, organizationId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  await db
+    .delete(setlists)
+    .where(and(eq(setlists.id, setlistId), eq(setlists.organizationId, organizationId)));
+
+  return true;
+}
+
+export async function addSongToSetlist(data: {
+  setlistId: number;
+  songId: number;
+  order: number;
+  notes?: string;
+}): Promise<SetlistItem | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [result] = await db.insert(setlistItems).values(data).$returningId();
+  if (!result?.id) return null;
+
+  const [item] = await db.select().from(setlistItems).where(eq(setlistItems.id, result.id));
+  return item || null;
+}
+
+export async function removeSongFromSetlist(itemId: number, setlistId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  await db
+    .delete(setlistItems)
+    .where(and(eq(setlistItems.id, itemId), eq(setlistItems.setlistId, setlistId)));
+
+  return true;
+}
+
+export async function reorderSetlistItems(
+  setlistId: number,
+  itemOrders: Array<{ id: number; order: number }>
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+
+  for (const item of itemOrders) {
+    await db
+      .update(setlistItems)
+      .set({ order: item.order })
+      .where(and(eq(setlistItems.id, item.id), eq(setlistItems.setlistId, setlistId)));
+  }
+
+  return true;
 }
 
 
@@ -1030,3 +1198,4 @@ export async function getSuperadminStats() {
     upcomingRenewals: upcomingRenewals.length,
   };
 }
+

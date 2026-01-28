@@ -18,6 +18,7 @@ import DashboardLayout from "./components/DashboardLayout";
 import TenantRoute from "./components/TenantRoute";
 import SuperadminDashboard from "./pages/superadmin/SuperadminDashboard";
 import SuperadminOrganizations from "./pages/superadmin/SuperadminOrganizations";
+import Songs from "./pages/Songs";
 
 function Router() {
   return (
@@ -76,6 +77,15 @@ function Router() {
         <TenantRoute>
           <DashboardLayout>
             <AdminPayments />
+          </DashboardLayout>
+        </TenantRoute>
+      </Route>
+
+      {/* Songs/Repository Routes */}
+      <Route path="/t/:slug/songs">
+        <TenantRoute>
+          <DashboardLayout>
+            <Songs />
           </DashboardLayout>
         </TenantRoute>
       </Route>

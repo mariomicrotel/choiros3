@@ -42,9 +42,20 @@ import {
   getSongsByOrganization,
   getSongById,
   getSongAssets,
+  createSong,
+  updateSong,
+  deleteSong,
+  createSongAsset,
+  deleteSongAsset,
   getSetlistsByOrganization,
   getSetlistById,
   getSetlistItems,
+  createSetlist,
+  updateSetlist,
+  deleteSetlist,
+  addSongToSetlist,
+  removeSongFromSetlist,
+  reorderSetlistItems,
 } from "./db";
 import { eq, and, count } from "drizzle-orm";
 import {
@@ -889,6 +900,45 @@ export const appRouter = router({
 
         return { success: true, assetId: Number(result[0].insertId) };
       }),
+
+    update: directorProcedure
+      .input(
+        z.object({
+          songId: z.number(),
+          title: z.string().optional(),
+          composer: z.string().optional(),
+          arranger: z.string().optional(),
+          language: z.string().optional(),
+          durationSeconds: z.number().optional(),
+          difficulty: z.number().optional(),
+          tempoBpm: z.number().optional(),
+          key: z.string().optional(),
+          categories: z.array(z.string()).optional(),
+          tags: z.array(z.string()).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { updateSong } = await import("./db");
+        const { songId, ...data } = input;
+        const song = await updateSong(songId, ctx.organizationId!, data);
+        return { success: !!song, song };
+      }),
+
+    delete: directorProcedure
+      .input(z.object({ songId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteSong } = await import("./db");
+        const success = await deleteSong(input.songId, ctx.organizationId!);
+        return { success };
+      }),
+
+    deleteAsset: directorProcedure
+      .input(z.object({ assetId: z.number(), songId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteSongAsset } = await import("./db");
+        const success = await deleteSongAsset(input.assetId, input.songId);
+        return { success };
+      }),
   }),
 
   // ============================================================================
@@ -992,6 +1042,43 @@ export const appRouter = router({
         await db.delete(setlistItems).where(eq(setlistItems.id, input.itemId));
 
         return { success: true };
+      }),
+
+    update: directorProcedure
+      .input(
+        z.object({
+          setlistId: z.number(),
+          title: z.string().optional(),
+          notes: z.string().optional(),
+          eventId: z.number().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { updateSetlist } = await import("./db");
+        const { setlistId, ...data } = input;
+        const setlist = await updateSetlist(setlistId, ctx.organizationId!, data);
+        return { success: !!setlist, setlist };
+      }),
+
+    delete: directorProcedure
+      .input(z.object({ setlistId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteSetlist } = await import("./db");
+        const success = await deleteSetlist(input.setlistId, ctx.organizationId!);
+        return { success };
+      }),
+
+    reorderItems: directorProcedure
+      .input(
+        z.object({
+          setlistId: z.number(),
+          itemOrders: z.array(z.object({ id: z.number(), order: z.number() })),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { reorderSetlistItems } = await import("./db");
+        const success = await reorderSetlistItems(input.setlistId, input.itemOrders);
+        return { success };
       }),
   }),
 

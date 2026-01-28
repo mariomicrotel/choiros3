@@ -101,37 +101,43 @@
 - [x] Email scadenza pagamento (inviata se dueAt è impostato)
 - [x] Email conferma pagamento (inviata quando status diventa completed)
 
-## Phase 4: Repository Brani
+## Phase 4: Repository Brani [IN CORSO]
 
 ### Database Brani
-- [ ] Tabella songs (title, composer, arranger, difficulty, tempo, key)
-- [ ] Tabella song_arrangements (version, arranger, notes)
-- [ ] Tabella song_assets (type: score_pdf, reference_audio, section_stem)
-- [ ] Tabella setlists (event_id, title, notes)
-- [ ] Tabella setlist_items (setlist_id, song_id, order)
+- [x] Tabella songs (title, composer, arranger, difficulty, tempo, key) - GIÀ PRESENTE
+- [x] Tabella song_assets (type: score_pdf, reference_audio, section_stem, lyrics, youtube_link) - GIÀ PRESENTE
+- [x] Tabella setlists (event_id, title, notes) - GIÀ PRESENTE
+- [x] Tabella setlist_items (setlist_id, song_id, order) - GIÀ PRESENTE
 
 ### Backend Brani
-- [ ] Endpoint songs.list (ricerca, filtri)
-- [ ] Endpoint songs.get (dettagli + assets)
-- [ ] Endpoint songs.create (director)
-- [ ] Endpoint songs.update e songs.delete
-- [ ] Endpoint songs.uploadAsset (S3)
-- [ ] Ricerca full-text su titolo, compositore, arrangiatore
+- [x] Endpoint songs.list (ricerca, filtri)
+- [x] Endpoint songs.get (dettagli + assets)
+- [x] Endpoint songs.create (director)
+- [x] Endpoint songs.update e songs.delete
+- [x] Endpoint songs.uploadAsset (S3)
+- [x] Endpoint songs.deleteAsset
+- [x] Ricerca full-text su titolo, compositore, arrangiatore (LIKE pattern)
 
 ### Setlist
-- [ ] Endpoint setlists.create
-- [ ] Endpoint setlists.update
-- [ ] Endpoint setlists.addSong
-- [ ] Endpoint setlists.removeSong
-- [ ] Vista setlist con ordine brani
+- [x] Endpoint setlists.list
+- [x] Endpoint setlists.get (con items)
+- [x] Endpoint setlists.create
+- [x] Endpoint setlists.update
+- [x] Endpoint setlists.delete
+- [x] Endpoint setlists.addSong
+- [x] Endpoint setlists.removeSong
+- [x] Endpoint setlists.reorderItems
 
 ### UI Repository Brani
-- [ ] Pagina lista brani con ricerca
-- [ ] Form creazione/modifica brano
-- [ ] Upload spartiti PDF
-- [ ] Upload audio MP3
-- [ ] Visualizzazione setlist per evento
-- [ ] Download spartiti per coristi
+- [x] Pagina lista brani con ricerca (Songs.tsx)
+- [x] Form creazione brano (CreateSongDialog.tsx)
+- [x] Route /t/:slug/songs in App.tsx
+- [x] Link menu "Brani" in DashboardLayout
+- [ ] Pagina dettaglio brano con assets
+- [ ] Upload spartiti PDF e audio MP3
+- [ ] Pagina lista setlist
+- [ ] Pagina dettaglio setlist con drag-and-drop
+- [ ] Associazione setlist a eventi
 
 ## Phase 5: Test e Deployment
 
