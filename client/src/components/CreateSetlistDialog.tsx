@@ -87,7 +87,6 @@ export function CreateSetlistDialog({ open, onClose, onSuccess }: CreateSetlistD
                 <SelectValue placeholder="Seleziona un evento..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nessun evento</SelectItem>
                 {events?.map((event) => (
                   <SelectItem key={event.id} value={event.id.toString()}>
                     {event.title} -{" "}

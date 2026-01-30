@@ -463,3 +463,6 @@
   - [x] Roadmap e funzionalità future
   - [x] Contributing guidelines
   - [x] Licenza
+
+## Bug Fix: Select.Item value vuoto
+- [x] Correggere CreateSetlistDialog - SelectItem con value="" non permesso da Radix UI
