@@ -133,8 +133,15 @@
 - [x] Form creazione brano (CreateSongDialog.tsx)
 - [x] Route /t/:slug/songs in App.tsx
 - [x] Link menu "Brani" in DashboardLayout
-- [ ] Pagina dettaglio brano con assets
-- [ ] Upload spartiti PDF e audio MP3
+- [x] Pagina dettaglio brano con assets
+  - [x] Componente SongDetail.tsx con visualizzazione metadati
+  - [x] Sezione assets con lista spartiti, audio, testi, link YouTube
+  - [x] Dialog modifica metadati (EditSongDialog)
+  - [x] Upload assets su S3 con progress indicator (UploadAssetDialog)
+  - [x] Eliminazione brano con conferma (AlertDialog)
+  - [x] Eliminazione singoli assets con conferma
+  - [x] Route /t/:slug/songs/:id in App.tsx
+  - [x] Permessi director+ per modifica/eliminazione
 - [ ] Pagina lista setlist
 - [ ] Pagina dettaglio setlist con drag-and-drop
 - [ ] Associazione setlist a eventi

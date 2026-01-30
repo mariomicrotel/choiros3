@@ -19,6 +19,7 @@ import TenantRoute from "./components/TenantRoute";
 import SuperadminDashboard from "./pages/superadmin/SuperadminDashboard";
 import SuperadminOrganizations from "./pages/superadmin/SuperadminOrganizations";
 import Songs from "./pages/Songs";
+import SongDetail from "./pages/SongDetail";
 
 function Router() {
   return (
@@ -86,6 +87,14 @@ function Router() {
         <TenantRoute>
           <DashboardLayout>
             <Songs />
+          </DashboardLayout>
+        </TenantRoute>
+      </Route>
+
+      <Route path="/t/:slug/songs/:id">
+        <TenantRoute>
+          <DashboardLayout>
+            <SongDetail />
           </DashboardLayout>
         </TenantRoute>
       </Route>
