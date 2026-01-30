@@ -29,6 +29,20 @@
       "when": 1769335757467,
       "tag": "0003_whole_gambit",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1769766620409,
+      "tag": "0004_deep_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1769766761328,
+      "tag": "0005_opposite_turbo",
+      "breakpoints": true
     }
   ]
 }

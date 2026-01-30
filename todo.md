@@ -469,3 +469,15 @@
 
 ## Bug Fix: SQL INSERT createSong
 - [x] Correggere errore SQL INSERT in createSong - campi categories e tags senza default
+
+## Task: Verifica e Popolamento Repository Brani
+- [x] Testare creazione brano dalla UI - FALLITO (stesso errore SQL)
+- [x] Creare script seed-songs.mjs per inserire brani di esempio
+- [ ] Inserire 10-15 brani di repertorio corale italiano - PARZIALE (solo 2/15 inseriti)
+- [ ] Verificare che i brani appaiano nella lista con ricerca funzionante
+
+## Bug Critico: Creazione Brani SQL INSERT
+- [ ] Risolvere errore "default, default" per categories e tags in query SQL
+- [ ] Problema: Drizzle ORM ignora valori espliciti ([], null) e usa DEFAULT
+- [ ] Causa sospetta: Cache modulo o server non ricarica codice aggiornato
+- [ ] Workaround temporaneo: Solo brani senza categories/tags funzionano (Miserere, Bella Ciao)

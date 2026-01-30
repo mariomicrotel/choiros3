@@ -591,8 +591,8 @@ export async function createSong(data: {
     difficulty: data.difficulty,
     tempoBpm: data.tempoBpm,
     key: data.key,
-    categories: data.categories || [],
-    tags: data.tags || [],
+    categories: data.categories ?? null,
+    tags: data.tags ?? null,
     createdBy: data.createdBy,
   }).$returningId();
   if (!result?.id) return null;
