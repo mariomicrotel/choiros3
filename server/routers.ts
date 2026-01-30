@@ -865,16 +865,15 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ ctx, input }) => {
-        const db = await getDb();
-        if (!db) throw new Error("Database not available");
-
-        const result = await db.insert(songs).values({
+        const { createSong } = await import("./db");
+        const song = await createSong({
           organizationId: ctx.organizationId!,
           createdBy: ctx.user!.id,
           ...input,
-        } as any);
+        });
 
-        return { success: true, songId: Number(result[0].insertId) };
+        if (!song) throw new Error("Failed to create song");
+        return { success: true, songId: song.id };
       }),
 
     uploadAsset: directorProcedure

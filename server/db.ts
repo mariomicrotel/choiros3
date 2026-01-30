@@ -582,9 +582,18 @@ export async function createSong(data: {
   const db = await getDb();
   if (!db) return null;
   const [result] = await db.insert(songs).values({
-    ...data,
+    organizationId: data.organizationId,
+    title: data.title,
+    composer: data.composer,
+    arranger: data.arranger,
+    language: data.language,
+    durationSeconds: data.durationSeconds,
+    difficulty: data.difficulty,
+    tempoBpm: data.tempoBpm,
+    key: data.key,
     categories: data.categories || null,
     tags: data.tags || null,
+    createdBy: data.createdBy,
   }).$returningId();
   if (!result?.id) return null;
   return await getSongById(result.id, data.organizationId);
