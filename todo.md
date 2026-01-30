@@ -466,3 +466,6 @@
 
 ## Bug Fix: Select.Item value vuoto
 - [x] Correggere CreateSetlistDialog - SelectItem con value="" non permesso da Radix UI
+
+## Bug Fix: SQL INSERT createSong
+- [x] Correggere errore SQL INSERT in createSong - campi categories e tags senza default
