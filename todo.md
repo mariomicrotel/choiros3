@@ -142,9 +142,16 @@
   - [x] Eliminazione singoli assets con conferma
   - [x] Route /t/:slug/songs/:id in App.tsx
   - [x] Permessi director+ per modifica/eliminazione
-- [ ] Pagina lista setlist
-- [ ] Pagina dettaglio setlist con drag-and-drop
-- [ ] Associazione setlist a eventi
+- [x] Gestione Setlist (Scalette Eventi)
+  - [x] Pagina lista setlist (Setlists.tsx)
+  - [x] Dialog creazione setlist con selezione evento (CreateSetlistDialog)
+  - [x] Pagina dettaglio setlist (SetlistDetail.tsx)
+  - [x] Drag-and-drop riordino brani con @dnd-kit
+  - [x] Dialog aggiunta brani dal repository (AddSongsDialog)
+  - [x] Route /t/:slug/setlists e /t/:slug/setlists/:id
+  - [x] Link menu "Scalette" in DashboardLayout
+  - [ ] Visualizzazione setlist da pagina evento (opzionale)
+  - [ ] Link "Visualizza scaletta" in EventDetail (opzionale)
 
 ## Phase 5: Test e Deployment
 

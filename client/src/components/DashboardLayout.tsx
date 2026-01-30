@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users, Calendar, UserCircle, DollarSign, Music } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Users, Calendar, UserCircle, DollarSign, Music, ListMusic } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState, useMemo } from "react";
 import { useLocation, useParams } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -126,6 +126,7 @@ function DashboardLayoutContent({
       { icon: LayoutDashboard, label: "Dashboard", path: `/t/${tenantSlug}/dashboard` },
       { icon: Calendar, label: "Calendario", path: `/t/${tenantSlug}/calendar` },
       { icon: Music, label: "Brani", path: `/t/${tenantSlug}/songs` },
+      { icon: ListMusic, label: "Scalette", path: `/t/${tenantSlug}/setlists` },
       { icon: UserCircle, label: "Profilo", path: `/t/${tenantSlug}/profile` },
     ];
 

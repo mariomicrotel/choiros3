@@ -1,4 +1,4 @@
-import { eq, and, desc, gte, lte, or } from "drizzle-orm";
+import { eq, and, gte, lte, desc, isNull, or, like, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -650,28 +650,79 @@ export async function deleteSongAsset(assetId: number, songId: number): Promise<
 // SETLIST MANAGEMENT
 // ============================================================================
 
-export async function getSetlistsByOrganization(organizationId: number): Promise<Setlist[]> {
+export async function getSetlistsByOrganization(organizationId: number) {
   const db = await getDb();
   if (!db) return [];
 
-  return db
-    .select()
+  const results = await db
+    .select({
+      setlist: setlists,
+      event: events,
+    })
     .from(setlists)
+    .leftJoin(events, eq(setlists.eventId, events.id))
     .where(eq(setlists.organizationId, organizationId))
     .orderBy(desc(setlists.createdAt));
+
+  // Get item counts for each setlist
+  const setlistIds = results.map((r) => r.setlist.id);
+  const itemCounts = setlistIds.length > 0
+    ? await db
+        .select({
+          setlistId: setlistItems.setlistId,
+          count: sql<number>`cast(count(*) as int)`,
+        })
+        .from(setlistItems)
+        .where(inArray(setlistItems.setlistId, setlistIds))
+        .groupBy(setlistItems.setlistId)
+    : [];
+
+  const countMap = new Map(itemCounts.map((c) => [c.setlistId, c.count]));
+
+  return results.map((r) => ({
+    ...r.setlist,
+    event: r.event,
+    _count: {
+      items: countMap.get(r.setlist.id) || 0,
+    },
+  }));
 }
 
-export async function getSetlistById(setlistId: number, organizationId: number): Promise<Setlist | null> {
+export async function getSetlistById(setlistId: number, organizationId: number) {
   const db = await getDb();
   if (!db) return null;
 
   const result = await db
-    .select()
+    .select({
+      setlist: setlists,
+      event: events,
+    })
     .from(setlists)
+    .leftJoin(events, eq(setlists.eventId, events.id))
     .where(and(eq(setlists.id, setlistId), eq(setlists.organizationId, organizationId)))
     .limit(1);
 
-  return result[0] || null;
+  if (!result[0]) return null;
+
+  // Get setlist items with songs
+  const items = await db
+    .select({
+      item: setlistItems,
+      song: songs,
+    })
+    .from(setlistItems)
+    .innerJoin(songs, eq(setlistItems.songId, songs.id))
+    .where(eq(setlistItems.setlistId, setlistId))
+    .orderBy(setlistItems.order);
+
+  return {
+    ...result[0].setlist,
+    event: result[0].event,
+    items: items.map((i) => ({
+      ...i.item,
+      song: i.song,
+    })),
+  };
 }
 
 export async function getSetlistItems(setlistId: number): Promise<SetlistItem[]> {

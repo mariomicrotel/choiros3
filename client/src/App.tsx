@@ -20,6 +20,8 @@ import SuperadminDashboard from "./pages/superadmin/SuperadminDashboard";
 import SuperadminOrganizations from "./pages/superadmin/SuperadminOrganizations";
 import Songs from "./pages/Songs";
 import SongDetail from "./pages/SongDetail";
+import Setlists from "./pages/Setlists";
+import SetlistDetail from "./pages/SetlistDetail";
 
 function Router() {
   return (
@@ -95,6 +97,23 @@ function Router() {
         <TenantRoute>
           <DashboardLayout>
             <SongDetail />
+          </DashboardLayout>
+        </TenantRoute>
+      </Route>
+
+      {/* Setlists/Scalette Routes */}
+      <Route path="/t/:slug/setlists">
+        <TenantRoute>
+          <DashboardLayout>
+            <Setlists />
+          </DashboardLayout>
+        </TenantRoute>
+      </Route>
+
+      <Route path="/t/:slug/setlists/:id">
+        <TenantRoute>
+          <DashboardLayout>
+            <SetlistDetail />
           </DashboardLayout>
         </TenantRoute>
       </Route>
