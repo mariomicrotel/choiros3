@@ -1,0 +1,1 @@
+ALTER TABLE `organizations` ADD `storage_type` varchar(20) DEFAULT 's3' NOT NULL;

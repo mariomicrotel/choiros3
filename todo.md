@@ -481,3 +481,25 @@
 - [ ] Problema: Drizzle ORM ignora valori espliciti ([], null) e usa DEFAULT
 - [ ] Causa sospetta: Cache modulo o server non ricarica codice aggiornato
 - [ ] Workaround temporaneo: Solo brani senza categories/tags funzionano (Miserere, Bella Ciao)
+
+
+## Feature: Configurazione Storage per Tenant
+- [x] Modificare schema organizations per aggiungere campo storageType (enum: 'local' | 's3')
+- [x] Eseguire migrazione database con pnpm db:push
+- [x] Creare helper storage unificato (server/storage-unified.ts)
+  - [x] Funzione putFile(orgId, key, data) con delegazione a filesystem o S3
+  - [x] Funzione getFile(orgId, key) con delegazione
+  - [x] Funzione deleteFile(orgId, key) con delegazione
+  - [x] Directory locale /storage/organizations/{orgId}/ per filesystem
+  - [x] Funzione listFiles(orgId, prefix) per elencare file
+- [x] Aggiunto middleware Express static per servire /storage
+- [ ] Aggiornare codice esistente per usare helper unificato (opzionale)
+- [x] UI Admin: Pagina impostazioni organizzazione
+  - [x] Select per storageType (Filesystem Locale / Amazon S3)
+  - [x] Endpoint tRPC organizations.updateStorageType
+  - [x] Validazione e conferma cambio storage
+  - [x] Avviso migrazione dati esistenti (AlertDialog)
+  - [x] Route /superadmin/settings in App.tsx
+  - [x] Pagina AdminOrganizations.tsx con UI completa
+- [ ] Testare upload/download con entrambi i backend
+- [ ] Documentare configurazione in README.md

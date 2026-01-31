@@ -1187,6 +1187,27 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  // ============================================================================
+  // ORGANIZATIONS ROUTES
+  // ============================================================================
+  organizations: router({
+    // Update storage type (superadmin only)
+    updateStorageType: superAdminProcedure
+      .input(
+        z.object({
+          organizationId: z.number(),
+          storageType: z.enum(["local", "s3"]),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { updateOrganization } = await import("./db");
+        await updateOrganization(input.organizationId, {
+          storageType: input.storageType,
+        });
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

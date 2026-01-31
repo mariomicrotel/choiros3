@@ -43,6 +43,13 @@
       "when": 1769766761328,
       "tag": "0005_opposite_turbo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1769873768099,
+      "tag": "0006_crazy_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

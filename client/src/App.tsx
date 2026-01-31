@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import AdminMembers from "./pages/admin/AdminMembers";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminPayments from "./pages/admin/AdminPayments";
+import AdminOrganizations from "./pages/admin/AdminOrganizations";
 import CheckIn from "./pages/CheckIn";
 import EventQRCode from "./pages/EventQRCode";
 import DashboardLayout from "./components/DashboardLayout";
@@ -126,6 +127,10 @@ function Router() {
       
       <Route path="/superadmin/organizations">
         <SuperadminOrganizations />
+      </Route>
+
+      <Route path="/superadmin/settings">
+        <AdminOrganizations />
       </Route>
 
       {/* Check-in Routes with tenant prefix */}

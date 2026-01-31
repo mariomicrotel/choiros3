@@ -50,6 +50,7 @@ export const organizations = mysqlTable(
       features: string[];
       allowGuests: boolean;
     }>(),
+    storageType: varchar("storage_type", { length: 20 }).default("s3").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
   },

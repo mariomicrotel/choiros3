@@ -1002,6 +1002,7 @@ export async function getAllOrganizations() {
       city: organizations.city,
       postalCode: organizations.postalCode,
       country: organizations.country,
+      storageType: organizations.storageType,
       createdAt: organizations.createdAt,
       updatedAt: organizations.updatedAt,
       // Subscription info
@@ -1144,6 +1145,7 @@ export async function updateOrganization(
     city: string;
     postalCode: string;
     country: string;
+    storageType: string;
   }>
 ) {
   const db = await getDb();
